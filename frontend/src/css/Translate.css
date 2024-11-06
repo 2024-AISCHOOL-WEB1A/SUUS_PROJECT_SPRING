@@ -42,8 +42,8 @@
 
 .modal-content {
   /* background-color: #fff; */
-  width: 80%;
-  height: 80%; /* 전체 높이를 80%로 설정 */
+  width: 70%;
+  height: 90%; /* 전체 높이를 80%로 설정 */
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -53,16 +53,17 @@
 
 .modal-header {
   background-color: rgba(224, 224, 224, 0.6); /* 상단 배경을 60% 투명하게 설정 */
-  padding: 10px; /* 상단의 패딩을 줄여서 작게 표시 */
+  /* 상단의 패딩을 줄여서 작게 표시 */
+  padding: 20px; 
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   border-bottom: 1px solid #ddd;
   height: 300%; /* 상단 부분의 크기를 설정 */
   position: relative;
 }
 
-.modal-header h2 {
+/* .modal-header h2 {
   font-family: 'HSSanTokki20-Regular';
   font-weight: lighter;
   margin: 0;
@@ -70,7 +71,7 @@
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-}
+} */
 
 .close {
   font-size: 30px;
