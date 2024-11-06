@@ -1,0 +1,22 @@
+spring.application.name=backend
+
+# Tomcat Server Port \ubcc0\uacbd
+server.port=8082
+
+# Context path \uc124\uc815
+server.servlet.context-path=/api
+
+# .env
+spring.config.import=optional:file:.env[.properties]
+
+spring.thymeleaf.prefix=classpath:/static/
+spring.mvc.view.suffix=.html
+
+# DB\uc124\uc815
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USER}
+spring.datasource.password=${DB_PW}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# Mybatis
+mybatis.mapper-locations=classpath:/mappers/*.xml
