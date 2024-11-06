@@ -1,0 +1,14 @@
+package kr.suus.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.suus.entity.Company;
+
+@Mapper
+public interface UserMapper {
+	
+	int ckComIdDup(String companyId);
+	
+	void insertCompany(Company company);
+
+}

@@ -1,0 +1,137 @@
+
+:root {
+    --color1: #8900e4;
+    --color2: #fa9c17;
+    --color3: #fd6038;
+    --color4: #099188;
+    --color5: #c5c218;
+    --color6: #fcf5d8;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+    background: #ffffff;
+    height: 100%;
+    font-family: 'Helvetica Neue LT W01_41488878', sans-serif;
+    font-size: 16px;
+    line-height: 26px;
+}
+
+/* Controls */
+.controls {
+    position: fixed; /* 고정 위치 */
+    bottom: 20px; /* 하단 여백 */
+    left: 50%; /* 수평 중앙 정렬 */
+    transform: translateX(-50%); /* 중앙 정렬 보정 */
+    display: flex; /* 플렉스 박스 레이아웃 */
+    gap: 10px; /* 버튼 사이 간격 */
+    z-index: 1000; /* 다른 요소 위에 위치하도록 설정 */
+}
+.controls li {
+    opacity: 0.8; /* 불투명도 */
+    cursor: pointer;
+    overflow: hidden;
+    display: inline-block;
+    height: 30px;
+    margin: 0 10px;
+    padding: 0 30px;
+    border-radius: 10px;
+    font: 0.8rem/30px Arial, sans-serif;
+    font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
+    background: transparent; /* 기본 배경 투명 */
+    color: #000000; /* 기본 텍스트 색상 검정 */
+    font-weight: bold; /* 텍스트 볼드체 적용 */
+    transition: background-color 0.3s ease, color 0.3s ease; /* 색상 전환 시 애니메이션 */
+}
+
+.controls li.active {
+    background-color: var(--color3); /* 활성화된 버튼의 배경색 */
+    color: #ffffff; /* 활성화된 버튼의 텍스트 색상 */
+    font-weight: bold; /* 활성화된 버튼의 텍스트 볼드체 적용 */
+}
+
+/* Page */
+.page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+.page .center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    font-size: 3rem;
+    text-align: center;
+}
+
+.page h1 {
+    margin: 0;
+    padding: 0;
+    font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
+    font-size: 2.8rem;
+    text-transform: capitalize;
+    color: #000000; /* 헤딩 텍스트를 검정색으로 변경 */
+    font-weight: bold; /* 헤딩 텍스트를 볼드체로 변경 */
+}
+
+/* Arrow */
+.arrow {
+    height: 18px;
+    width: 18px;
+    border-top: 4px solid #000000; /* 화살표 색상을 검정색으로 변경 */
+    border-right: 4px solid #000000; /* 화살표 색상을 검정색으로 변경 */
+    transform: rotate(45deg);
+    margin-left: 5px; /* 간격을 줄이기 위해 5px로 설정 */
+}
+
+.center:hover .arrow {
+    border-top: 4px solid rgb(32, 32, 31);
+    border-right: 4px solid rgb(0, 0, 0);
+}
+
+/* Additional page styles */
+.fade {
+    background: var(--color1);
+}
+
+.slide {
+    background: var(--color2);
+}
+
+.zoom {
+    background: var(--color3);
+}
+
+.flipX {
+    background: var(--color4);
+}
+
+.flipY {
+    background: var(--color5);
+}
+
+.slideUp {
+    background: var(--color6);
+}
+
+h1 {
+    cursor: pointer;
+    color: #000000; /* 모든 h1 태그 텍스트 색상을 검정색으로 변경 */
+    font-weight: bold; /* 모든 h1 태그 텍스트를 볼드체로 변경 */
+}
+

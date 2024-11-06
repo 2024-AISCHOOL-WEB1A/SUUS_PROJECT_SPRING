@@ -1,0 +1,55 @@
+.wrapper {
+    height: 100vh;
+}
+
+.scroll-end-button {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* 중앙에 위치시키고 작게 시작 */
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    opacity: 1;
+    z-index: 9999;
+    /* 최상단에 표시되도록 설정 */
+}
+
+.scroll-end-button:hover {
+    background-color: blue;
+}
+
+.overlay-img {
+    scale: 0.2;
+    width: 600px;
+    height: auto;
+    transform: translate(-100%, -130%);
+}
+
+.section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-container {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    z-index: 2;
+    perspective: 500px;
+    overflow: hidden;
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* object-position: center center; */
+}

@@ -1,0 +1,73 @@
+package kr.suus.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import kr.suus.dto.ComSignUpDto;
+import kr.suus.entity.Company;
+import kr.suus.entity.User;
+import kr.suus.service.UserService;
+
+@RestController
+public class UserController {
+    
+	private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+//    // Company ID 중복 확인
+    @PostMapping("/ComIdDuplicate")
+    public boolean ckComIdDup(@RequestBody Company company) {
+    	  System.out.println("Checking ID: " + company.getCompanyId());
+          return userService.ckComIdDup(company.getCompanyId());
+    }
+    
+//    // Company 가입
+    @PostMapping("/SignUpCom")
+    public ResponseEntity<String> signUpCompany(@RequestBody ComSignUpDto company){
+    	return userService.insertCompany(company);
+    }
+//
+//    // User ID 중복 확인
+//    @PostMapping("/UserIdDuplicate")
+	   public boolean ckUserIdDup(@RequestBody User user) {
+	  	  System.out.println("Checking ID: " + user.getUserId());
+	        return userService.ckUserIdDup(user.getUserId());
+	  }
+//    
+//    // User 가입
+//    @PostMapping("/SignUpUser")
+//    public ResponseEntity<UserSignUpResDTO> signUpUser(@RequestBody UserSignUpReqDTO reqDTO){
+//        UserSignUpResDTO resDTO = userService.saveUser(reqDTO);
+//        if ("success".equals(resDTO.getStatus())) {
+//            return ResponseEntity.ok(resDTO);
+//        } else {
+//            return ResponseEntity.badRequest().body(resDTO);
+//        }
+//    }
+//
+//    // User 로그인
+//    @PostMapping("/SignIn")
+//    public String signInUser(@RequestBody SignInReqDTO reqDTO){
+//    	System.out.println(reqDTO.getType());
+//    	Optional<UserSignUpResDTO> userResponse = userService.loginUser(reqDTO);
+//    	
+//    	return "re";
+//    	SignInResDTO resDTO = new SignInResDTO("test");
+//    	return ResponseEntity.ok(resDTO);
+    	
+//        boolean loginCheck = userService.loginUser(user);
+//        
+//        if (loginCheck) {
+//            return ResponseEntity.ok("로그인 성공");  // 성공 시 200 OK
+//        } else {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패");  // 실패 시 401 Unauthorized
+//        }
+//    }
+}

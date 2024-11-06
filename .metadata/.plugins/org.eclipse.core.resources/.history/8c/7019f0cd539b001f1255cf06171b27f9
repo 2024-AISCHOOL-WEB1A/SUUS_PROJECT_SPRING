@@ -1,0 +1,14 @@
+package kr.suus.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class SignInReqDto {
+	private String signId;
+	private String signPw;
+	private String signType;
+}

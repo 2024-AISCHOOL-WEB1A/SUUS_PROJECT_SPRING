@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.suus.mapper.UserMapper">
+
+	<!-- ID 중복 체크 -->
+    <select id="ckComIdDup" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM Company WHERE COMPANY_ID = #{companyId}
+    </select>
+
+	<insert id="insertCompany" parameterType="kr.suus.entity.Company">
+        INSERT INTO Company (COMPANY_ID, COMPANY_PW, COMPANY_NM)
+        VALUES (#{companyId}, #{companyPw}, #{companyName})
+    </insert>
+    
+    <!-- 카드정보 저장 -->
+    <insert id="insertCard" parameterType="kr.suus.entity.Card">
+        INSERT INTO Card (CARD_NUM, CARD_YUHYO_DATE, BUSINESS_NUM, COMPANY_ID)
+        VALUES (#{cardNum}, #{cardYuhyoDate}, #{businessNum}, #{companyId})
+    </insert>
+    
+</mapper>

@@ -1,0 +1,65 @@
+package kr.suus.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import kr.suus.entity.Company;
+import kr.suus.entity.User;
+import kr.suus.service.CompanyService;
+import kr.suus.service.UserService;
+
+@RestController
+public class ApiController {
+	
+	@Autowired
+	private CompanyService comService;
+	
+	@Autowired
+	private UserService userService;
+	
+	
+	@RequestMapping("/hello")
+	public Map<String, Object> hello() {
+		Map<String, Object> map = new HashMap<>();
+		map.put("message", "테스트 중입니당");
+		
+		return map;
+	}
+	
+	@RequestMapping("/getCompany")
+	public List<Company> getComList() {
+		return comService.getComList();
+	}
+	
+	@PostMapping("/SignUp")
+	public ResponseEntity<String> SingUpCom(@RequestBody User user){
+		String isSaved = userService.saveUser(user);
+		
+		if ("Success".equals(isSaved)) {
+            return ResponseEntity.ok("가입 성공");
+        } else {
+            return ResponseEntity.badRequest().body(isSaved);
+        }
+	}
+	
+	
+	@PostMapping("/SignIn")
+	public ResponseEntity<String> SingInCom(@RequestBody User user){
+		boolean LoginCk = userService.loginUser(user);
+		
+		if (LoginCk) {
+            return ResponseEntity.ok("로그인 성공");  // 성공 시 200 OK
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패");  // 실패 시 401 Unauthorized
+        }
+	}
+}

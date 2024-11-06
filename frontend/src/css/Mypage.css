@@ -1,0 +1,157 @@
+.dashboard-wrapper {
+    font-family: Arial, sans-serif;
+    background: #d4dbf83d;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    /* 최소 높이를 설정하여 화면 높이에 맞추기 */
+    padding: 10px;
+    overflow-y: inherit;
+    /* 세로 스크롤 가능하게 설정 */
+    overflow-x: hidden;
+    /* 가로 스크롤 숨김 */
+}
+
+/* 사이드바 div */
+.sidebar {
+    position: fixed;
+    top: 110px;
+    /* 스크롤할 때 고정될 위치 */
+    left: 20px;
+    /* 화면 왼쪽에 고정 */
+    width: 250px;
+    background-color: #2c4ebe;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    min-height: 70vh;
+    /* 초기 최소 높이를 설정 */
+    max-height: 98vh;
+    /* 최대 높이를 제한 */
+    box-sizing: border-box;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* 사이드바 물방울 모형 */
+.sidebar::before {
+    content: "";
+    position: absolute;
+    bottom: 40px;
+    /* 하단으로 위치 조정 */
+    left: 20px;
+    /* 왼쪽으로 위치 조정 */
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.1);
+    /* 반투명 흰색 */
+    border-radius: 50%;
+    /* 동그라미 모양 */
+    z-index: 0;
+    /* 콘텐츠보다 뒤로 보내기 */
+}
+
+/* 사이드바 물방울 모형 */
+.sidebar::after {
+    content: "";
+    position: absolute;
+    bottom: 100px;
+    /* 하단으로 위치 조정 */
+    left: 150px;
+    /* 오른쪽으로 위치 조정 */
+    width: 180px;
+    height: 180px;
+    background-color: rgba(255, 255, 255, 0.05);
+    /* 반투명 흰색 */
+    border-radius: 100%;
+    /* 동그라미 모양 */
+    z-index: 0;
+    /* 콘텐츠보다 뒤로 보내기 */
+}
+
+/* 사이드바 div h3 */
+.profile {
+    text-align: center;
+    color: white;
+}
+
+/* 사이드바 버튼 */
+.upgrade-btn {
+    background-color: #b7b0e26c;
+    border: none;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+    line-height: 28px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 사이드바 버튼 호버 */
+.upgrade-btn:hover {
+    background-color: #fffdfd;
+    color: black;
+}
+
+.content-my {
+    flex: 1;
+    margin-left: 270px;
+    /* 사이드바와의 간격 설정 */
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    color: #333;
+}
+
+.content-header {
+    color: white;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.card {
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    color: black;
+    /* 텍스트 색상을 검정으로 변경 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    margin-top: 1;
+    /* 타이틀과 카드 사이 간격 설정 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.content-header h1 {
+    color: black;
+    /* 메인 타이틀을 검정색으로 변경 */
+    font-size: 36px;
+    /* margin-bottom: 20px; */
+    /* 타이틀과 서브 텍스트 간의 간격 조정 */
+}
+
+.content-header p {
+    color: black;
+    /* 서브 텍스트를 검정색으로 변경 */
+    font-size: 18px;
+    /* margin-top: 10px; */
+    /* 타이틀과 서브 텍스트 간의 간격 조정 */
+}
+
+.stats-box {
+    flex: 1;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    color: white;
+    backdrop-filter: blur(10px);
+}

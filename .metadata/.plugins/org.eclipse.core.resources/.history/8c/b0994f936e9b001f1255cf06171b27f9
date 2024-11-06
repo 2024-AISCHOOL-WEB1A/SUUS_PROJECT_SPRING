@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.suus.mapper.UserMapper">
+
+	<!-- 기업ID 중복 체크 -->
+    <select id="ckComIdDup" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM Company WHERE COMPANY_ID = #{companyId}
+    </select>
+    
+    <!-- 유저ID 중복 체크 -->
+    <select id="ckUserIdDup" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM User WHERE USER_ID = #{userId}
+    </select>
+
+	<!-- 기업정보 저장 -->
+	<insert id="insertCompany" parameterType="kr.suus.entity.Company">
+        INSERT INTO Company (COMPANY_ID, COMPANY_PW, COMPANY_NM, CONTACT)
+        VALUES (#{companyId}, #{companyPw}, #{companyName}, #{contact})
+    </insert>
+    
+    <!-- 카드정보 저장 -->
+    <insert id="insertCard" parameterType="kr.suus.entity.Card">
+        INSERT INTO Card (CARD_NUM, CARD_YUHYO_DATE, BUSINESS_NUM, COMPANY_ID)
+        VALUES (#{cardNum}, #{cardYuhyoDate}, #{businessNum}, #{companyId})
+    </insert>
+    
+    <!-- 유저정보 저장 -->
+    <insert id="insertUser" parameterType="kr.suus.entity.User">
+        INSERT INTO User (USER_ID, USER_PW, USER_NM, COMPANY_ID)
+        VALUES (#{userId}, #{userPw}, #{userName}, #{companyId})
+    </insert>
+    
+	<!-- 기업 로그인 -->
+	<select id="ComSignIn" parameterType="kr.suus.dto.SignInReqDto" resultType="kr.suus.dto.SignInResDto">
+	    SELECT COMPANY_ID as companyId, COMPANY_NM as userName FROM Company WHERE COMPANY_ID = #{signId} AND COMPANY_PW = #{signPw}
+	</select>
+	
+    <!-- 유저 로그인 -->
+	<select id="UserSignIn" parameterType="kr.suus.dto.SignInReqDto" resultType="kr.suus.dto.SignInResDto">
+	    SELECT USER_NM as userName, USER_ID as userId, COMPANY_ID as companyId FROM User WHERE USER_ID = #{signId} AND USER_PW = #{signPw}
+	</select>
+	
+	<!-- 기업 정보 -->
+	<select id="CompanyInfo" parameterType="kr.suus.dto.UserInfoReqDto" resultType="kr.suus.entity.Company">
+	    SELECT COMPANY_ID as companyId, COMPANY_PW as companyPw, COMPANY_NM as companyName, CONTACT as contact 
+	    FROM Company WHERE COMPANY_ID = #{userId}
+	</select>
+	
+	<!-- 유저 정보 -->
+	<select id="UserInfo" parameterType="kr.suus.dto.UserInfoReqDto" resultType="kr.suus.entity.User">
+	    SELECT USER_ID as userId, USER_PW as userPw, USER_NM userName, COMPANY_ID as companyId
+	    FROM User WHERE COMPANY_ID = #{userId}
+	</select>
+    
+</mapper>
