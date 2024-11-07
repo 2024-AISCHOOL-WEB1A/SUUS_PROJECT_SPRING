@@ -1,0 +1,138 @@
+@import url("https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600,700|Source+Sans+Pro:400,600,700&display=swap");
+
+.wrapper2 {
+    max-width: 1500px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+}
+
+.card-form__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* 입력 필드 간의 간격을 늘려줌 */
+}
+
+.card-form__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px; /* 행 간격을 넓힘 */
+}
+
+.card-form__col {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.card-form__col:last-child {
+    margin-right: 0;
+}
+
+.card-form__button {
+    width: 100%;
+    height: 40px;
+    background: #2c4ebe;
+    border: none;
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+.card-item {
+    max-width: 400px;
+    height: 250px;
+    margin-bottom: 1px;
+    position: relative;
+    transform: translateY(-20px) translateX(90px);
+    border-radius: 15px;
+    overflow: hidden;
+    margin-left: 100px;
+    bottom: 180;
+    box-shadow: 0 15px 40px 0 rgba(14, 42, 90, 0.45);
+    background-size: cover;
+}
+
+.card-item:hover,
+.card-item.focused {
+    transform: translateY(-45px) translateX(25px) scale(1.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 20px 50px #b7b0e26c;
+}
+
+.card-item__side {
+    border-radius: 15px;
+    transition: all 0.8s cubic-bezier(0.71, 0.03, 0.56, 0.85);
+    backface-visibility: hidden;
+    height: 100%;
+}
+
+.card-item__cover {
+    background-color: #1c1d27;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.card-item__wrapper {
+    padding: 20px 15px;
+    font-family: "Source Code Pro", monospace;
+    text-shadow: 7px 6px 10px rgba(14, 42, 90, 0.8);
+    color: #fcfcff;
+}
+
+.card-input {
+    margin-bottom: 15px; /* 각 입력 필드의 하단 간격을 넓힘 */
+}
+
+.card-input__input {
+    width: 100%;
+    height: 40px;
+    border-radius: 5px;
+    border: 1px solid #ced6e0;
+    padding: 5px 20px;
+    font-size: 16px;
+    color: #1a3b5d;
+    
+}
+
+.resident-number-wrapper span {
+    margin-left: 10px; /* '-'와 뒷자리 사이 간격 조정 */
+}
+
+.masked-back {
+    margin-left: 20px; /* 주민등록번호 뒷자리와 '*' 사이 간격 조정 */
+}
+.card-item__date {
+    bottom: 20px;
+    position: absolute;
+}
+
+.card-item__number {
+    font-size: 28px;
+    display: flex;
+    margin-top: 10px;
+}
+
+.card-input__input.resident-number-front {
+    width: 40%;
+}
+
+.card-input__input.resident-number-back {
+    width: 60%;
+    margin-left: 10px; /* 주민등록번호 뒷자리와 '*' 간격 조절 */
+}
+
+.card-number-container.focused {
+    border: 2px solid #FFFFFF;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    padding: 2px;
+}

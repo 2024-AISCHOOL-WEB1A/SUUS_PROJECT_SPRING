@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import UsageChart from '../components/UsageChart';
 import "../css/Mypage.css"
 import UserInfo from '../components/UserInfo';
+import Card from '../components/Card'
 
 const Mypage = () => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
@@ -18,7 +19,7 @@ const Mypage = () => {
             case '이용량':
                 return <UsageChart userInfo={userInfo}/>;
             case '결제정보':
-                return <div>결제 정보를 여기에 표시합니다.</div>;
+                return <Card userInfo={userInfo}/>;
             case '회원정보':
                 return <UserInfo userInfo={userInfo}/>
             default:
@@ -30,6 +31,7 @@ const Mypage = () => {
         <div className="dashboard-wrapper">
             <aside className="sidebar">
                 <div className="profile">
+                <img src='./imgs/Group 73.png' alt="Profile" className="profile-pic" />
                     <h3>{userInfo.userName}</h3>
                 </div>
                 <button className={`upgrade-btn ${activeButton === '이용량' ? 'active' : ''}`}

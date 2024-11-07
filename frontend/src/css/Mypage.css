@@ -155,3 +155,12 @@
     color: white;
     backdrop-filter: blur(10px);
 }
+
+
+.profile-pic {
+    scale: 0.8;
+    border-radius: 10%;
+    max-width: 120px; /* 최대 너비를 현재 크기로 설정 */
+    max-height: 120px; /* 최대 높이를 현재 크기로 설정 */
+    object-fit: cover; 
+}
