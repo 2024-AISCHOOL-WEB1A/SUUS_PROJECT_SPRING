@@ -13,6 +13,7 @@ const Main = () => {
             {currentView === "수어번역" && <Translate />}
             {currentView === "마이페이지" &&<Mypage/>}
             <Controls />
+            
         </div>
     )
 }

@@ -1,55 +1,109 @@
-.wrapper {
+/* 기본 스타일 초기화 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .wrapper,
+  .content {
+    position: relative;
+    width: 100%;
+    z-index: 1;
+  }
+  
+  .content {
+    overflow-x: hidden;
+  }
+  
+  .content .section {
+    width: 100%;
     height: 100vh;
-}
-
-.scroll-end-button {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    /* 중앙에 위치시키고 작게 시작 */
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    opacity: 1;
-    z-index: 9999;
-    /* 최상단에 표시되도록 설정 */
-}
-
-.scroll-end-button:hover {
-    background-color: blue;
-}
-
-.overlay-img {
-    scale: 0.2;
-    width: 600px;
-    height: auto;
-    transform: translate(-100%, -130%);
-}
-
-.section {
+  }
+  
+  .content .section.hero {
+    background-image: url('https://your-background-image-url-here.jpg'); /* 배경 이미지 URL */
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.image-container {
-    width: 100vw;
+    flex-direction: column;
+    color: white;
+    text-align: center;
+  }
+  
+  .text {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .image-container {
+    width: 100%;
     height: 100vh;
     position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 2;
     perspective: 500px;
     overflow: hidden;
-}
-
-.image-container img {
+  }
+  
+  .image-container img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* object-position: center center; */
-}
+    object-position: center center;
+  }
+  
+  .overlay-img {
+    scale: 0.2;
+    width: 600px;
+    height: 400px;
+    /* height: auto; */
+    transform: translate(-80%, -240%);
+  }
+  
+  @keyframes blink {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  
+  /* 화살표 컨테이너 스타일 */
+  .arrow-container {
+    cursor: pointer;
+    position: absolute;
+    top: 95%;
+    left: 52%;
+    transform: translate(-40%, -100%);
+  
+    color: rgb(0, 0, 0);
+   
+    border-radius: 8px;
+    font-size: 22px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease;
+    animation: blink 2s infinite; 
+  }
+  
+  
+  
+  .arrow-icon {
+    width: 24px; /* 화살표 크기 */
+    height: auto;
+    transition: transform 0.3 s ease;
+    
+  }
+  
+  .arrow-icon:hover {
+    transform: scale(1.5);
+  }
+  
