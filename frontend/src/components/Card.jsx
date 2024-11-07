@@ -10,7 +10,7 @@ function CreditCardForm() {
   const [residentBack, setResidentBack] = useState('4');
   const [isFocused, setIsFocused] = useState(false);
 
-  const cardBackground = '/imgs/카드.png';
+  const cardBackground = './imgs/card.png';
 
   const handleCardNumberChange = (e) => {
     const value = e.target.value;
