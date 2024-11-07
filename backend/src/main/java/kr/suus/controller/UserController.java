@@ -23,18 +23,7 @@ public class UserController {
         this.userService = userService;
     }
 
-//  Company ID 중복 확인
-    @PostMapping("/ComIdDuplicate")
-    public boolean ckComIdDup(@RequestBody Company company) {
-    	  System.out.println("Checking ID: " + company.getCompanyId());
-          return userService.ckComIdDup(company.getCompanyId());
-    }
-    
-//  Company 가입
-    @PostMapping("/SignUpCom")
-    public ResponseEntity<String> signUpCompany(@RequestBody ComSignUpDto company){
-    	return userService.insertCompany(company);
-    }
+
 
 //  User ID 중복 확인
     @PostMapping("/UserIdDuplicate")
@@ -59,12 +48,6 @@ public class UserController {
     @PostMapping("/UserInfo")
     public ResponseEntity<?> userInfo(@RequestBody UserInfoReqDto infodto){
     	return userService.userInfo(infodto);
-    }
-    
-//	기업정보 수정
-    @PostMapping("/UpdateCompanyInfo")
-    public ResponseEntity<?> UpdateCompanyInfo(@RequestBody Company company){
-    	return userService.UpdateCompanyInfo(company);
     }
     
 //  유저정보 수정
