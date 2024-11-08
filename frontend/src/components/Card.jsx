@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../css/Card.css';
+import '../css/card.css';
 import instance from '../axios'
 
 const Card = ({ userInfo }) => {
