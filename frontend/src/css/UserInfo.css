@@ -47,12 +47,15 @@
 }
 
 .profile-section {
+    margin-top: 60px;
+    line-height: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
 .profile-image {
+ 
     text-align: center;
     margin-right: 20px;
     display: flex;
@@ -67,7 +70,7 @@
     height: 200px;
     border-radius: 50%;
     /* 테두리 추가 */
-    background-color: #8d80e418;
+    background-color: #949EFF;
     object-fit: contain;
 }
 
@@ -84,6 +87,7 @@
     font-weight: bold;
     cursor: pointer;
     margin-top: 10px;
+   
     /* Change Here 버튼 위쪽 여백 조정 */
 }
 
@@ -130,10 +134,11 @@
     cursor: pointer;
     margin-top: 10px;
     text-align: center;
+    font-size: 16px;
 }
 
 .save-button :hover {
-    scale: 0.8;
+    color: white;
 }
 
 .account-setting h2 {

@@ -2,12 +2,13 @@
 
 .wrapper2 {
     max-width: 1500px;
-    min-height: 100vh;
+    min-height: 50vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 10px 15px;
+    line-height: 18px;
 }
 
 .card-form__inner {
@@ -38,30 +39,31 @@
     background: #2c4ebe;
     border: none;
     border-radius: 5px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
     color: #fff;
-    margin-top: 15px;
+    margin-top: 20px;
+    margin-bottom: 40px;
     cursor: pointer;
 }
 
 .card-item {
     max-width: 400px;
-    height: 250px;
-    margin-bottom: 1px;
+    height: 240px;
+   
     position: relative;
     transform: translateY(-20px) translateX(90px);
     border-radius: 15px;
     overflow: hidden;
     margin-left: 100px;
-    bottom: 180;
+    margin-top: 40px;
     box-shadow: 0 15px 40px 0 rgba(14, 42, 90, 0.45);
     background-size: cover;
 }
 
 .card-item:hover,
 .card-item.focused {
-    transform: translateY(-45px) translateX(25px) scale(1.05);
+    transform: translateY(-15px) translateX(15px) scale(1.05);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 20px 50px #b7b0e26c;
 }
@@ -88,9 +90,7 @@
     color: #fcfcff;
 }
 
-.card-input {
-    margin-bottom: 15px; /* 각 입력 필드의 하단 간격을 넓힘 */
-}
+
 
 .card-input__input {
     width: 100%;

@@ -4,7 +4,7 @@ import instance from '../axios';
 
 const UserInfo = ({ userInfo }) => {
 
-    const [profileImage, setProfileImage] = useState('/imgs/Group.73.png'); // 업로드한 이미지 경로
+    const [profileImage, setProfileImage] = useState('./imgs/Group.73.png'); // 업로드한 이미지 경로
     const [selectedFileName, setSelectedFileName] = useState('');
 
     const [companyResInfo, setCompanyResInfo] = useState(null);
@@ -117,13 +117,13 @@ const UserInfo = ({ userInfo }) => {
 
     return (
         <div className="account-setting">
-            <h2 className='h2person'>Account Setting</h2>
+           
             {/* <div className="tabs">
                 탭 내용
             </div> */}
             <div className="profile-section">
                 <div className="profile-image">
-                    <img src={profileImage} alt="Profile" />
+                    <img src='./imgs/Group73.png' alt="Profile" />
                     <label className="change-button">
                         Change Here
                         <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />

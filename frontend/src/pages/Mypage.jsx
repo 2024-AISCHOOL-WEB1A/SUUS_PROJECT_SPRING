@@ -31,8 +31,8 @@ const Mypage = () => {
         <div className="dashboard-wrapper">
             <aside className="sidebar">
                 <div className="profile">
-                <img src='./imgs/Group 73.png' alt="Profile" className="profile-pic" />
-                    <h3>{userInfo.userName}</h3>
+                <img src='./imgs/Group73.png' alt="Profile" className="profile-pic" />
+                    <h3>{userInfo.userName}님 환영합니다.</h3>
                 </div>
                 <button className={`upgrade-btn ${activeButton === '이용량' ? 'active' : ''}`}
                     onClick={() => handleButtonClick('이용량')} >
