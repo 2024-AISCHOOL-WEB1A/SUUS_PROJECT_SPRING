@@ -29,5 +29,12 @@
 			SET USER_NM = #{userName}, USER_PW = #{userPw}
 		WHERE USER_ID = #{userId}
 	</update>
+	
+	<!-- 사용시간 계산 -->
+	<insert id="UpdateUsageTime" parameterType="kr.suus.dto.UsageDataDto">
+    	INSERT INTO Usage_data (YEAR, MONTH, DAY, USAGE_TIME, COMPANY_ID)
+    		VALUES (YEAR(CURDATE()), MONTH(CURDATE()), DAY(CURDATE()), #{usageTime}, #{companyId})
+    		ON DUPLICATE KEY UPDATE USAGE_TIME = USAGE_TIME + #{usageTime};
+	</insert>
     
 </mapper>

@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 import kr.suus.dto.SignInReqDto;
 import kr.suus.dto.SignInResDto;
+import kr.suus.dto.UsageDataDto;
 import kr.suus.dto.UserInfoReqDto;
 import kr.suus.entity.Card;
 import kr.suus.entity.Company;
@@ -21,5 +22,7 @@ public interface UserMapper {
 	User UserInfo(String userId);
 	
 	int UpdateUserInfo(User user);
+
+	void UpdateUsageTime(UsageDataDto usagedto);
 
 }

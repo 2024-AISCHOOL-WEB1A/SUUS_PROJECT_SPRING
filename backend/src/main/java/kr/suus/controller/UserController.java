@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.suus.dto.ComSignUpDto;
 import kr.suus.dto.SignInReqDto;
+import kr.suus.dto.UsageDataDto;
 import kr.suus.dto.UserInfoReqDto;
 import kr.suus.entity.Company;
 import kr.suus.entity.User;
@@ -53,6 +54,12 @@ public class UserController {
     public ResponseEntity<?> UpdateUserInfo(@RequestBody User user){
     	System.out.println(user);
     	return userService.UpdateUserInfo(user);
+    }
+    
+//  사용시간 계산
+    @PostMapping("/UpdateUsageTime")
+    public ResponseEntity<String> UpdateUsageTime(@RequestBody UsageDataDto usagedto){
+    	return userService.UpdateUsageTime(usagedto); 
     }
     
 }

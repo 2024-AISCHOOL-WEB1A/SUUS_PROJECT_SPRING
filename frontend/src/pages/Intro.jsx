@@ -7,7 +7,6 @@ import Header from '../components/header';
 
 const Main = () => {
     const navigate = useNavigate();
-
     useEffect(() => {
         gsap.registerPlugin(ScrollToPlugin);
 
@@ -29,8 +28,12 @@ const Main = () => {
     }, []);
 
     const handleArrowClick = () => {
-        console.log("Arrow clicked!");
-        navigate('/login');
+        const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+        if (Object.keys(userInfo).length > 0) {
+            navigate('/main');
+        } else {
+            navigate('/login');
+        }
     };
 
     return (
@@ -42,7 +45,7 @@ const Main = () => {
                         <div className='overlay-img'>
                             <img src="./imgs/2650149.png" alt="" />
                         </div>
-                      
+
                     </section>
                     <div className="image-container">
                         <img src="./imgs/endImg.png" alt="image" />

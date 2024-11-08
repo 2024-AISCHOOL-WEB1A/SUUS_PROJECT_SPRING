@@ -170,7 +170,7 @@ public class CompanyService {
 	        // 기타 예외 처리
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("요청 처리 중 문제가 발생했습니다: " + e.getMessage());
 	    }
-    	System.out.println(res);
+        
     	if(res > 0) {
     		return GetCardData(cardInfo.getCompanyId());
     	}else {

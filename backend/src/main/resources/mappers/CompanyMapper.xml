@@ -42,6 +42,7 @@
     	FROM Card WHERE COMPANY_ID = #{companyId}
     </select>
     
+    <!-- 카드정보 업데이트 -->
     <update id="UpdateCardData" parameterType="kr.suus.entity.Card">
 		UPDATE Card
 			SET ENCRYPTED_DATA = #{EncryptedData}, IV = #{iv}

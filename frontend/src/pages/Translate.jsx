@@ -1,11 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import '../css/Translate.css';
 import instance from '../axios';
+import { useDispatch, useSelector } from "react-redux"
+import { usageActions } from '../redux/reducer/usageSlice';
 import { TweenMax, Expo, Back } from 'gsap';
 
 const Translate = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false); // 모달창 상태 관리
   const buttonRef = useRef(null); // 버튼 참조
+  const dispatch = useDispatch()
+  const { isModalOpen } = useSelector((state) => state.usage)
 
   // 버튼 애니메이션 효과 적용
   useEffect(() => {
@@ -21,13 +24,17 @@ const Translate = () => {
     }
     return () => {
       if ($button) {
-        $button.removeEventListener('click', () => {}); // 이벤트 리스너 제거
+        $button.removeEventListener('click', () => { }); // 이벤트 리스너 제거
       }
     };
   }, []);
 
+  const openModal = () => {
+    dispatch(usageActions.openModal())
+  }
+
   const modalClose = async () => {
-    setIsModalOpen(false);
+    dispatch(usageActions.closeModal())
     try {
       const res = await instance.get("http://localhost:5000/shutdown");
       console.log(res.data);
@@ -38,7 +45,7 @@ const Translate = () => {
 
   return (
     <div className='backgroundImg'>
-      <button ref={buttonRef} className='round' onClick={() => setIsModalOpen(true)}>
+      <button ref={buttonRef} className='round' onClick={openModal}>
         <span className="button-text">Start</span>
       </button>
       {isModalOpen && (
@@ -46,7 +53,7 @@ const Translate = () => {
           <div className="modal-content">
             {/* 상단 부분 */}
             <div className="modal-header">
-              <iframe src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
+              <iframe src="http://localhost:5000/video_feed" width={1280} height={720}></iframe>
               <span className="close" onClick={modalClose}>&times;</span>
             </div>
             {/* 하단 부분 */}
