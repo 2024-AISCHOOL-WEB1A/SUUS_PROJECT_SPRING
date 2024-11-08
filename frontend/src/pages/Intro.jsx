@@ -45,8 +45,8 @@ const Main = () => {
                         <div className='overlay-img'>
                             <img src="./imgs/2650149.png" alt="" />
                         </div>
-
                     </section>
+
                     <div className="image-container">
                         <img src="./imgs/endImg.png" alt="image" />
                         <div className="arrow-container" onClick={handleArrowClick}>
