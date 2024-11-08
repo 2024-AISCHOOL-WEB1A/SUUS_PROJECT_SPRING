@@ -88,7 +88,6 @@ public class CompanyService {
         try {
             // 데이터베이스에서 카드 정보 조회
             Card card = companyMapper.GetCardData(companyId);
-            System.out.println(card);
 
             // 카드 정보가 없는 경우 처리
             if (card == null) {
@@ -135,7 +134,7 @@ public class CompanyService {
             return ResponseEntity.ok(cardInfoDto);
 
         } catch (DataAccessException e) {
-            // 데이터베이스 접근 예외 처리1
+            // 데이터베이스 접근 예외 처리
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("데이터베이스 조회 중 문제가 발생했습니다: " + e.getMessage());
         } catch (Exception e) {
             // 기타 예외 처리
@@ -144,6 +143,39 @@ public class CompanyService {
     }
     
 //  카드정보 수정
-    
+    public ResponseEntity<?> UpdateCardData(CardInfoDto cardInfo) {
+    	String combinedData = String.format(
+				"%s|%s|%s", 
+				cardInfo.getCardNum().replaceAll("-", ""), // 카드번호에서 '-' 제거
+				cardInfo.getCardMonth()+cardInfo.getCardYear(), // 유효기간에서 '/' 제거
+				cardInfo.getSsnFront()+cardInfo.getSsnBack()
+        );
+    	
+    	String iv = encryptionService.generateIV(); // 랜덤 IV 생성
+        String encryptedData = encryptionService.encryptWithIV(combinedData, iv); // 데이터 암호화
+        
+        Card card = new Card();
+        card.setEncryptedData(encryptedData); // 암호화된 데이터
+        card.setIv(iv); // IV
+        card.setCompanyId(cardInfo.getCompanyId());
+        
+        int res;
+        
+        try {
+        	res = companyMapper.UpdateCardData(card);
+	    } catch (DataAccessException e) {
+	        // 데이터베이스 접근 예외 처리
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("데이터베이스 조회 중 문제가 발생했습니다: " + e.getMessage());
+	    } catch (Exception e) {
+	        // 기타 예외 처리
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("요청 처리 중 문제가 발생했습니다: " + e.getMessage());
+	    }
+    	System.out.println(res);
+    	if(res > 0) {
+    		return GetCardData(cardInfo.getCompanyId());
+    	}else {
+    		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("카드정보 업데이트에 실패하였습니다.");
+    	}
+	}
     
 }

@@ -13,4 +13,5 @@ public class CardInfoDto {
 	private String cardYear;
 	private String ssnFront;
 	private String ssnBack;
+	private String companyId;
 }

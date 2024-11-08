@@ -4,7 +4,6 @@ import instance from '../axios'
 
 const Card = ({ userInfo }) => {
   const cardBackground = './imgs/card.png';
-
   const [isFocused, setIsFocused] = useState(false);
   const [cardInfo, setCardInfo] = useState({
     cardNum: "",
@@ -13,7 +12,6 @@ const Card = ({ userInfo }) => {
     ssnFront: "",
     ssnBack: ""
   })
-
   const handleSignComChange = (e) => {
     const { name, value } = e.target;
 
@@ -56,7 +54,18 @@ const Card = ({ userInfo }) => {
   }
 
   const updateCardData = async () => {
-    const res = await instance.post("/UpdateCardData", cardInfo)
+    const updateCardInfo = {
+      ...cardInfo,
+      companyId: userInfo.companyId
+    }
+    try{
+      const res = await instance.post("/UpdateCardData", updateCardInfo)
+      alert("카드정보 수정이 완료되었습니다.")
+      setCardInfo(res.data)
+    }
+    catch(error){
+      console.error(error)
+    }
   }
 
   return (

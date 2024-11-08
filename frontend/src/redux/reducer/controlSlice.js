@@ -5,10 +5,10 @@ let initialState = {
 }
 
 export const controlSlice = createSlice({
-    name : 'control',
+    name: 'control',
     initialState,
-    reducers : {
-        changeView(state, action){
+    reducers: {
+        changeView(state, action) {
             state.currentView = action.payload
         },
     }

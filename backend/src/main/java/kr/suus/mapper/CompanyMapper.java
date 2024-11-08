@@ -23,4 +23,6 @@ public interface CompanyMapper {
 	int UpdateCompanyInfo(Company company);
 	
 	Card GetCardData (String companyId);
+	
+	int UpdateCardData (Card card);
 }
