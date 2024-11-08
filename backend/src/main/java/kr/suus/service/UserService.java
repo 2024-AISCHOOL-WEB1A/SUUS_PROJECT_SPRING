@@ -114,11 +114,9 @@ public class UserService {
     		return ResponseEntity.ok("성공");
     	}
     	catch(DataAccessException e) {
-    		System.out.println("데이터베이스 오류"+e);
     		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("정보 불러오기 실패"); 
 		}
     	catch (Exception e) { 
-    		System.out.println("몰라그냥오류" + e);
     		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 처리 중 문제가 발생했습니다");
 		} 
 	}

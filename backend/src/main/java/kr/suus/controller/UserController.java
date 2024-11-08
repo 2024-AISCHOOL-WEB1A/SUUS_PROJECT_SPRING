@@ -27,7 +27,6 @@ public class UserController {
 //  User ID 중복 확인
     @PostMapping("/UserIdDuplicate")
 	public boolean ckUserIdDup(@RequestBody User user) {
-    	System.out.println("Checking ID: " + user.getUserId());
     	return userService.ckUserIdDup(user.getUserId());
     }
 
@@ -52,7 +51,6 @@ public class UserController {
 //  유저정보 수정
     @PostMapping("/UpdateUserInfo")
     public ResponseEntity<?> UpdateUserInfo(@RequestBody User user){
-    	System.out.println(user);
     	return userService.UpdateUserInfo(user);
     }
     
