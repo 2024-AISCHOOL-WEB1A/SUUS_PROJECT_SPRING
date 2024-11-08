@@ -32,7 +32,12 @@
 	
 	<!-- 카드정보 저장 -->
     <insert id="insertCard" parameterType="kr.suus.entity.Card">
-        INSERT INTO Card (CARD_NUM, CARD_YUHYO_DATE, BUSINESS_NUM, COMPANY_ID)
-        VALUES (#{cardNum}, #{cardYuhyoDate}, #{businessNum}, #{companyId})
+        INSERT INTO Card (ENCRYPTED_DATA, IV, COMPANY_ID)
+        VALUES (#{EncryptedData}, #{iv}, #{companyId})
     </insert>
+    
+    <select id="GetCardData" resultType="kr.suus.entity.Card" parameterType="String">
+    	SELECT CARD_IDX as cardIdx, ENCRYPTED_DATA as EncryptedData, IV as iv, COMPANY_ID as companyId 
+    	FROM Card WHERE COMPANY_ID = #{companyId}
+    </select>
 </mapper>

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import kr.suus.dto.CardInfoDto;
 import kr.suus.dto.ComSignUpDto;
 import kr.suus.entity.Company;
 import kr.suus.service.CompanyService;
@@ -23,7 +24,6 @@ public class CompanyController {
 //  Company ID 중복 확인
     @PostMapping("/ComIdDuplicate")
     public boolean ckComIdDup(@RequestBody Company company) {
-    	System.out.println("Checking ID: " + company.getCompanyId());
         return companyService.ckComIdDup(company.getCompanyId());
     }
     
@@ -36,7 +36,19 @@ public class CompanyController {
 //	기업정보 수정
     @PostMapping("/UpdateCompanyInfo")
     public ResponseEntity<?> UpdateCompanyInfo(@RequestBody Company company){
-    	System.out.println(company);
     	return companyService.UpdateCompanyInfo(company);
+    }
+    
+//  기업 결제정보 조회
+    @PostMapping("/GetCardData")
+    public ResponseEntity<?> GetCardData(@RequestBody Company company){
+    	return companyService.GetCardData(company.getCompanyId());
+    }
+    
+//  기업 카드정보 수정
+    @PostMapping("/UpdateCardData")
+    public ResponseEntity<?> UpdateCardData(@RequestBody CardInfoDto cardInfo){
+    	System.out.println(cardInfo);
+    	return null;
     }
 }

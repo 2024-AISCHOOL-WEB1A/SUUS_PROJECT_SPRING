@@ -14,5 +14,5 @@ public class ComSignUpDto {
 	private String contact;
 	private String cardNum;
 	private String cardYuhyoDate;
-	private String businessNum;
+	private String ssnNum;
 }

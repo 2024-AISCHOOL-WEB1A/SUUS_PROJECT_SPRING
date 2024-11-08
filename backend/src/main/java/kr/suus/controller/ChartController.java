@@ -24,14 +24,12 @@ public class ChartController {
 	@PostMapping("/getChartData")
 	public List<ChartResDto> getChartData(@RequestBody ChartReqDto reqdto) {
 		List<ChartResDto> res = chartService.getChartData(reqdto);
-		System.out.println(res);
 		return res;
 	}
 	
 	@PostMapping("/getSearchChartData")
 	public List<ChartResDto> getSearchChartData(@RequestBody ChartReqDto reqdto) {
 		List<ChartResDto> res = chartService.getSearchChartData(reqdto);
-		System.out.println(res);
 		return res;
 	}
 	

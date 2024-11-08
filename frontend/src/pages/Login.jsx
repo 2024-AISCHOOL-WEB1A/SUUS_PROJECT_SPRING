@@ -18,8 +18,8 @@ const Login_min = () => {
         contact: "",
         cardNum: "",
         cardYuhyoDate: "",
-        businessNum1: "", // 첫 번째 필드 (6자리)
-        businessNum2: ""  // 두 번째 필드 (4자리)
+        ssnFront: "",
+        ssnBack: ""
     });
 
     // user 가입 입력 state
@@ -38,30 +38,66 @@ const Login_min = () => {
     // company 가입 입력 state 관리
     const handleSignComChange = (e) => {
         const { name, value } = e.target;
+
+        let formattedValue = value;
+
+        if (name === "contact") { // 전화번호 필드의 name 속성이 "phoneNumber"라고 가정
+            const onlyNumbers = value.replace(/\D/g, ""); // 숫자만 남기기
+            if (onlyNumbers.length <= 3) {
+                formattedValue = onlyNumbers;
+            } else if (onlyNumbers.length <= 7) {
+                formattedValue = `${onlyNumbers.slice(0, 3)}-${onlyNumbers.slice(3)}`;
+            } else {
+                formattedValue = `${onlyNumbers.slice(0, 3)}-${onlyNumbers.slice(3, 7)}-${onlyNumbers.slice(7, 11)}`;
+            }
+        }
+
+        if (name === "cardNum") { // "cardNumber" 필드가 카드번호 입력
+            const onlyNumbers = value.replace(/\D/g, ""); // 숫자만 남기기
+            if (onlyNumbers.length <= 4) {
+                formattedValue = onlyNumbers;
+            } else if (onlyNumbers.length <= 8) {
+                formattedValue = `${onlyNumbers.slice(0, 4)}-${onlyNumbers.slice(4)}`;
+            } else if (onlyNumbers.length <= 12) {
+                formattedValue = `${onlyNumbers.slice(0, 4)}-${onlyNumbers.slice(4, 8)}-${onlyNumbers.slice(8)}`;
+            } else {
+                formattedValue = `${onlyNumbers.slice(0, 4)}-${onlyNumbers.slice(4, 8)}-${onlyNumbers.slice(8, 12)}-${onlyNumbers.slice(12, 16)}`;
+            }
+        }
+
+        if (name === "cardYuhyoDate") { // "expiryDate" 필드가 카드 유효날짜 입력
+            const onlyNumbers = value.replace(/\D/g, ""); // 숫자만 남기기
+            if (onlyNumbers.length <= 2) {
+                formattedValue = onlyNumbers; // 2자리 이하일 때 그대로 사용
+            } else {
+                formattedValue = `${onlyNumbers.slice(0, 2)}/${onlyNumbers.slice(2, 4)}`; // "MM / YY" 형식
+            }
+        }
+
         setSignUpCom((prevData) => ({
             ...prevData,
-            [name]: value
+            [name]: formattedValue
         }));
     };
 
     // 사업자번호 첫 번째 필드 입력 관리
-    const handleBusinessNum1Change = (e) => {
+    const handleSsnFrontChange = (e) => {
         const value = e.target.value.slice(0, 6); // 최대 6자리까지만 입력
         setSignUpCom((prevData) => ({
             ...prevData,
-            businessNum1: value
+            ssnFront: value
         }));
         if (value.length === 6) {
-            document.getElementById("businessNum2").focus(); // 6자리 입력 시 다음 필드로 자동 이동
+            document.getElementById("ssnBack").focus(); // 6자리 입력 시 다음 필드로 자동 이동
         }
     };
 
     // 사업자번호 두 번째 필드 입력 관리
-    const handleBusinessNum2Change = (e) => {
+    const handleSsnBackChange = (e) => {
         const value = e.target.value.slice(0, 4); // 최대 4자리까지만 입력
         setSignUpCom((prevData) => ({
             ...prevData,
-            businessNum2: value
+            ssnBack: value
         }));
     };
 
@@ -95,6 +131,7 @@ const Login_min = () => {
             alert(res.data ? "중복된 아이디입니다." : "사용 가능한 아이디입니다.");
         }
         catch (error) {
+            console.error(error)
             alert("예기치 못한 오류가 발생했습니다.");
         }
     };
@@ -113,7 +150,7 @@ const Login_min = () => {
                 contact: signUpCom.contact,
                 cardNum: signUpCom.cardNum,
                 cardYuhyoDate: signUpCom.cardYuhyoDate,
-                businessNum: `${signUpCom.businessNum1}-${signUpCom.businessNum2}` // 사업자번호 합치기
+                ssnNum: `${signUpCom.ssnFront}${signUpCom.ssnBack}` // 사업자번호 합치기
             });
 
             alert(res.data);
@@ -124,8 +161,8 @@ const Login_min = () => {
                 contact: "", 
                 cardNum: "", 
                 cardYuhyoDate: "", 
-                businessNum1: "", 
-                businessNum2: "" 
+                ssnFront: "", 
+                ssnBack: "" 
             });
         }
         catch (error) {
@@ -217,18 +254,18 @@ const Login_min = () => {
                                     className="input" value={signUpCom.companyName} onChange={handleSignComChange} />
                                 <input type="text" placeholder="담당자 전화번호" name='contact'
                                     className="input" value={signUpCom.contact} onChange={handleSignComChange} />
-                                <input type="text" placeholder="카드 번호" name='cardNum'
+                                <input type="text" placeholder="카드 번호" name='cardNum' maxLength='20'
                                     className="input" value={signUpCom.cardNum} onChange={handleSignComChange} />
                                 <input type="text" placeholder="카드 유효기간" name='cardYuhyoDate'
                                     className="input" value={signUpCom.cardYuhyoDate} onChange={handleSignComChange} />
                                 
                                 {/* 사업자번호 두 필드로 분리 */}
                                 <div className="input-group">
-                                    <input type="text" placeholder="카드번호" name='businessNum1'
-                                        className="input" value={signUpCom.businessNum1} onChange={handleBusinessNum1Change} maxLength="6" />
+                                    <input type="text" placeholder="주민등록번호 6자리" name='ssnFront'
+                                        className="input" value={signUpCom.ssnFront} onChange={handleSsnFrontChange} maxLength="6" />
                                     <span>-</span>
-                                    <input type="text" placeholder="" id="businessNum2" name='businessNum2'
-                                        className="input" value={signUpCom.businessNum2} onChange={handleBusinessNum2Change} maxLength="4" />
+                                    <input type="text" placeholder="주민등록번호 1자리" name='ssnBack' id='ssnBack'
+                                        className="input" value={signUpCom.ssnBack} onChange={handleSsnBackChange} maxLength="1" />
                                 </div>
 
                                 <button className="submit-button" onClick={submitComSignUp}>Sign Up</button>

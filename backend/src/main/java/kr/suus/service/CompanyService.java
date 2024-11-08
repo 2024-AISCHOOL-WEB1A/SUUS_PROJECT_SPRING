@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.suus.dto.CardInfoDto;
 import kr.suus.dto.ComSignUpDto;
 import kr.suus.entity.Card;
 import kr.suus.entity.Company;
@@ -42,12 +43,20 @@ public class CompanyService {
     		com.setContact(company.getContact());
     		companyMapper.insertCompany(com);
     		
-    		Card card = new Card();
-    		card.setCardNum(company.getCardNum());
-    		card.setCardYuhyoDate(company.getCardYuhyoDate());
-    		card.setBusinessNum(company.getBusinessNum());
-    		card.setCompanyId(company.getCompanyId());
-    		companyMapper.insertCard(card);
+    		String combinedData = String.format(
+				"%s|%s|%s", 
+	            company.getCardNum().replaceAll("-", ""), // 카드번호에서 '-' 제거
+	            company.getCardYuhyoDate().replaceAll("/", ""), // 유효기간에서 '/' 제거
+	            company.getSsnNum()
+            );
+    		
+    		String iv = encryptionService.generateIV(); // 랜덤 IV 생성
+            String encryptedData = encryptionService.encryptWithIV(combinedData, iv); // 데이터 암호화
+            Card card = new Card();
+            card.setEncryptedData(encryptedData); // 암호화된 데이터
+            card.setIv(iv); // IV
+            card.setCompanyId(company.getCompanyId());
+            companyMapper.insertCard(card);
  			
             return ResponseEntity.ok("회원가입이 완료되었습니다.");
         } catch (DataAccessException e) {
@@ -73,4 +82,68 @@ public class CompanyService {
     	} catch (Exception e) { return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 처리 중 문제가 발생했습니다"); }
     	return ResponseEntity.status(HttpStatus.NOT_FOUND).body("업데이트에 실패했습니다.");
 	}
+    
+//  카드정보 조회
+    public ResponseEntity<?> GetCardData(String companyId) {
+        try {
+            // 데이터베이스에서 카드 정보 조회
+            Card card = companyMapper.GetCardData(companyId);
+            System.out.println(card);
+
+            // 카드 정보가 없는 경우 처리
+            if (card == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("카드 정보를 찾을 수 없습니다.");
+            }
+
+            String decryptedData;
+
+            // 복호화 시도
+            try {
+                decryptedData = encryptionService.decryptWithIV(card.getEncryptedData(), card.getIv());
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("복호화 중 문제가 발생했습니다: " + e.getMessage());
+            }
+
+            // 복호화된 데이터 파싱
+            String[] parts = decryptedData.split("\\|");
+            if (parts.length != 3) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("복호화된 데이터 형식이 올바르지 않습니다.");
+            }
+
+            // 데이터 분리
+            String cardNum = parts[0];
+            String cardDate = parts[1];
+            String ssnNum = parts[2];
+
+            // 유효기간 분리
+            String cardMonth = cardDate.substring(0, 2); // 첫 두 자리 = 월
+            String cardYear = cardDate.substring(2, 4); // 나머지 두 자리 = 년
+
+            // 주민등록번호 분리
+            String ssnFront = ssnNum.substring(0, 6); // 앞 6자리
+            String ssnBack = ssnNum.substring(6, 7); // 뒷자리 1자리
+
+            // DTO 생성
+            CardInfoDto cardInfoDto = new CardInfoDto();
+            cardInfoDto.setCardNum(cardNum.replaceAll("(.{4})(?!$)", "$1-"));
+            cardInfoDto.setCardMonth(cardMonth);
+            cardInfoDto.setCardYear(cardYear);
+            cardInfoDto.setSsnFront(ssnFront);
+            cardInfoDto.setSsnBack(ssnBack);
+
+            // 성공 응답
+            return ResponseEntity.ok(cardInfoDto);
+
+        } catch (DataAccessException e) {
+            // 데이터베이스 접근 예외 처리1
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("데이터베이스 조회 중 문제가 발생했습니다: " + e.getMessage());
+        } catch (Exception e) {
+            // 기타 예외 처리
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("요청 처리 중 문제가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
+//  카드정보 수정
+    
+    
 }
