@@ -80,8 +80,8 @@
   .arrow-container {
     cursor: pointer;
     position: absolute;
-    top: 95%;
-    left: 52%;
+    top: 88%;
+    left: 50%;
     transform: translate(-40%, -100%);
   
     color: rgb(0, 0, 0);

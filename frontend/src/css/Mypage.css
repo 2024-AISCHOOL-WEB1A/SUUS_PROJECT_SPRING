@@ -1,13 +1,13 @@
 .dashboard-wrapper {
     font-family: Arial, sans-serif;
-    background: #d4dbf83d;
+    background: #ced6f658;
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 100vh;
+    min-height: 780px;
     /* 최소 높이를 설정하여 화면 높이에 맞추기 */
     padding: 10px;
-    overflow-y: inherit;
+  
     /* 세로 스크롤 가능하게 설정 */
     overflow-x: hidden;
     /* 가로 스크롤 숨김 */
@@ -63,6 +63,7 @@
     left: 150px;
     /* 오른쪽으로 위치 조정 */
     width: 180px;
+   
     height: 180px;
     background-color: rgba(255, 255, 255, 0.05);
     /* 반투명 흰색 */
@@ -88,7 +89,7 @@
     cursor: pointer;
     font-size: 16px;
     width: 100%;
-    margin-top: 10px;
+    margin-top: 20px;
     line-height: 28px;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -121,13 +122,11 @@
     border-radius: 15px;
     backdrop-filter: blur(10px);
     color: black;
-    /* 텍스트 색상을 검정으로 변경 */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-   max-height: 585px;
- 
-    /* 타이틀과 카드 사이 간격 설정 */
+    min-height: 80vh; /* 사이드바와 높이를 맞추기 위해 최소 높이 설정 */
+    max-height: 98vh; /* 최대 높이 제한 */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 

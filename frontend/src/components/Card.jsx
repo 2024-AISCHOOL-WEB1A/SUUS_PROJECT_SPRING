@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../css/Card.css';
+import '../css/card.css';
 import instance from '../axios'
 
 const Card = ({ userInfo }) => {
@@ -12,13 +12,13 @@ const Card = ({ userInfo }) => {
     ssnFront: "",
     ssnBack: ""
   })
+
   const handleSignComChange = (e) => {
     const { name, value } = e.target;
-
     let formattedValue = value;
 
     if (name === "cardNum") {
-      const onlyNumbers = value.replace(/\D/g, ""); // 숫자만 남기기
+      const onlyNumbers = value.replace(/\D/g, "");
       if (onlyNumbers.length <= 4) {
         formattedValue = onlyNumbers;
       } else if (onlyNumbers.length <= 8) {
@@ -40,33 +40,31 @@ const Card = ({ userInfo }) => {
   const handleBlur = () => setIsFocused(false);
 
   useEffect(() => {
-    getCardData()
-  }, [])
+    getCardData();
+  }, []);
 
   const getCardData = async () => {
     try {
-      const res = await instance.post("/GetCardData", { companyId: userInfo.companyId })
-      setCardInfo(res.data)
+      const res = await instance.post("/GetCardData", { companyId: userInfo.companyId });
+      setCardInfo(res.data);
+    } catch (error) {
+      console.error(error);
     }
-    catch (error) {
-      console.error(error)
-    }
-  }
+  };
 
   const updateCardData = async () => {
     const updateCardInfo = {
       ...cardInfo,
       companyId: userInfo.companyId
+    };
+    try {
+      const res = await instance.post("/UpdateCardData", updateCardInfo);
+      alert("카드정보 수정이 완료되었습니다.");
+      setCardInfo(res.data);
+    } catch (error) {
+      console.error(error);
     }
-    try{
-      const res = await instance.post("/UpdateCardData", updateCardInfo)
-      alert("카드정보 수정이 완료되었습니다.")
-      setCardInfo(res.data)
-    }
-    catch(error){
-      console.error(error)
-    }
-  }
+  };
 
   return (
     <div className="wrapper2">
@@ -121,8 +119,8 @@ const Card = ({ userInfo }) => {
 
               <input type="text" name='ssnBack' className="card-input__input resident-number-back"
                 value={cardInfo.ssnBack} onFocus={handleFocus} onBlur={handleBlur} onChange={handleSignComChange}
-                maxLength="2" style={{ maxWidth: '50px', marginLeft: '5px' }} />
-              <input type="text" value="* * * * * *" className="card-input__input" style={{ maxWidth: '200px', border: 'none', backgroundColor: 'white' }} disabled />
+                placeholder="**" maxLength="1" style={{ maxWidth: '50px', marginLeft: '5px' }} />
+              <input type="text" value="******" className="card-input__input" style={{ maxWidth: '100px', border: 'none', backgroundColor: 'white' }} disabled />
             </div>
           </div>
           <button className="card-form__button" onClick={updateCardData}>카드 정보 수정하기</button>
@@ -130,6 +128,6 @@ const Card = ({ userInfo }) => {
       </div>
     </div>
   );
-}
+};
 
 export default Card;

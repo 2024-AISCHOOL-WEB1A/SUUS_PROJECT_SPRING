@@ -9,6 +9,7 @@ import 'chartjs-plugin-zoom';
 import 'chart.js/auto';
 import "../css/Chart.css"
 import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const UsageChart = ({userInfo}) => {
 
@@ -23,7 +24,7 @@ const UsageChart = ({userInfo}) => {
     const [chartData, setChartData] = useState({
         labels: [],
         datasets: [{
-            label: 'GPU 사용량',
+            label: '번역 이용시간',
             data: [],
             backgroundColor: 'rgba(75, 113, 217, 0.2)',
             borderColor: '#4b71d9',

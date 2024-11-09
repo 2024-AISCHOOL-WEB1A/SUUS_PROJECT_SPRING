@@ -16,14 +16,14 @@ const Main = () => {
             z: 350,
             transformOrigin: "center center",
             ease: "power1.inOut",
-            duration: 3 // 애니메이션 지속 시간 조정
+            duration: 3.5 // 애니메이션 지속 시간 조정
         });
 
         gsap.to(".overlay-img", {
             scale: 0.2,
             transformOrigin: "center center",
             ease: "power1.inOut",
-            duration: 3 // 애니메이션 지속 시간 조정
+            duration: 3.5 // 애니메이션 지속 시간 조정
         });
     }, []);
 
