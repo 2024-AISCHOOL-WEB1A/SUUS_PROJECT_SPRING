@@ -36,8 +36,16 @@
         VALUES (#{EncryptedData}, #{iv}, #{companyId})
     </insert>
     
+    <!-- 카드정보 조회-->
     <select id="GetCardData" resultType="kr.suus.entity.Card" parameterType="String">
     	SELECT CARD_IDX as cardIdx, ENCRYPTED_DATA as EncryptedData, IV as iv, COMPANY_ID as companyId 
     	FROM Card WHERE COMPANY_ID = #{companyId}
     </select>
+    
+    <!-- 카드정보 업데이트 -->
+    <update id="UpdateCardData" parameterType="kr.suus.entity.Card">
+		UPDATE Card
+			SET ENCRYPTED_DATA = #{EncryptedData}, IV = #{iv}
+		WHERE COMPANY_ID = #{companyId}
+	</update>
 </mapper>

@@ -6,12 +6,10 @@ import Card from '../components/Card'
 
 const Mypage = () => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
-    console.log(userInfo)
     const [activeButton, setActiveButton] = useState('이용량');
 
     const handleButtonClick = (button) => {
         setActiveButton(button);
-        console.log(`${button} 버튼이 클릭되었습니다`);
     };
 
     const renderCardContent = () => {

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import kr.suus.dto.ComSignUpDto;
 import kr.suus.dto.SignInReqDto;
 import kr.suus.dto.SignInResDto;
+import kr.suus.dto.UsageDataDto;
 import kr.suus.dto.UserInfoReqDto;
 import kr.suus.entity.Card;
 import kr.suus.entity.Company;
@@ -94,10 +95,30 @@ public class UserService {
     			User res = userMapper.UserInfo(user.getUserId());
     			return ResponseEntity.ok(res);
     		}
-    		
-    	} catch (DataAccessException e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("정보 불러오기 실패");
-    	} catch (Exception e) { return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 처리 중 문제가 발생했습니다"); }
+    	} 
+    	catch (DataAccessException e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("정보 불러오기 실패");
+    	}
+    	catch (Exception e) {
+    		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 처리 중 문제가 발생했습니다");
+		}
+    	
     	return ResponseEntity.status(HttpStatus.NOT_FOUND).body("업데이트에 실패했습니다.");
+	}
+    
+//  사용시간 계산
+    public ResponseEntity<String> UpdateUsageTime(UsageDataDto usagedto) {
+    	try {
+    		userMapper.UpdateUsageTime(usagedto);
+    		
+    		return ResponseEntity.ok("성공");
+    	}
+    	catch(DataAccessException e) {
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("정보 불러오기 실패"); 
+		}
+    	catch (Exception e) { 
+    		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("요청 처리 중 문제가 발생했습니다");
+		} 
 	}
 }
 

@@ -14,7 +14,10 @@ const Controls = () => {
 
     const handleAnimationClick = (type) => {
         if (type === '로그아웃') {
-            window.confirm("로그아웃 하시겠습니까?") && nav('/login')
+            if(window.confirm("로그아웃 하시겠습니까?")){
+                localStorage.removeItem("userInfo");
+                nav('/login');
+            } 
         } else {
             dispatch(controlActions.changeView(type))
         }

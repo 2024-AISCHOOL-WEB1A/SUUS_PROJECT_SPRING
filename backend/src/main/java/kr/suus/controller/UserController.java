@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.suus.dto.ComSignUpDto;
 import kr.suus.dto.SignInReqDto;
+import kr.suus.dto.UsageDataDto;
 import kr.suus.dto.UserInfoReqDto;
 import kr.suus.entity.Company;
 import kr.suus.entity.User;
@@ -26,7 +27,6 @@ public class UserController {
 //  User ID 중복 확인
     @PostMapping("/UserIdDuplicate")
 	public boolean ckUserIdDup(@RequestBody User user) {
-    	System.out.println("Checking ID: " + user.getUserId());
     	return userService.ckUserIdDup(user.getUserId());
     }
 
@@ -51,8 +51,13 @@ public class UserController {
 //  유저정보 수정
     @PostMapping("/UpdateUserInfo")
     public ResponseEntity<?> UpdateUserInfo(@RequestBody User user){
-    	System.out.println(user);
     	return userService.UpdateUserInfo(user);
+    }
+    
+//  사용시간 계산
+    @PostMapping("/UpdateUsageTime")
+    public ResponseEntity<String> UpdateUsageTime(@RequestBody UsageDataDto usagedto){
+    	return userService.UpdateUsageTime(usagedto); 
     }
     
 }

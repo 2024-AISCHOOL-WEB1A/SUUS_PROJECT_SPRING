@@ -15,7 +15,6 @@ public class EncryptionService {
 	
  // 암호화 메서드
     public String encryptWithIV(String plainText, String iv) {
-    	System.out.println("암호화메서드 접근");
         try {
             return AESUtil.encrypt(plainText, SECRET_KEY, iv);
         } catch (Exception e) {

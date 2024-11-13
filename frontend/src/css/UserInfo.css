@@ -11,6 +11,7 @@
     margin: 0 auto;
     font-family: Arial, sans-serif;
     color: #333;
+    margin-top: 80px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -130,7 +131,7 @@
     border: none;
     padding: 10px;
     border-radius: 5px;
-    font-weight: bold;
+    
     cursor: pointer;
     margin-top: 10px;
     text-align: center;

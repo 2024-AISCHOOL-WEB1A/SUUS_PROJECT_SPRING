@@ -48,7 +48,6 @@ public class CompanyController {
 //  기업 카드정보 수정
     @PostMapping("/UpdateCardData")
     public ResponseEntity<?> UpdateCardData(@RequestBody CardInfoDto cardInfo){
-    	System.out.println(cardInfo);
-    	return null;
+    	return companyService.UpdateCardData(cardInfo); 
     }
 }
