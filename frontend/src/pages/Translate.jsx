@@ -4,7 +4,6 @@ import instance from '../axios';
 import { useDispatch, useSelector } from "react-redux"
 import { usageActions } from '../redux/reducer/usageSlice';
 import { TweenMax, Expo, Back } from 'gsap';
-import axios from 'axios';
 import '../css/Translate.css';
 
 const Translate = () => {
@@ -36,9 +35,11 @@ const Translate = () => {
   }
   const [sentence, setSentence] = useState(""); // 서버에서 받은 문장 저장
   const [iframeChange, setIframeChange] = useState(false);
-  const [sttText, setSttText] = useState(""); // STT 결과 저장
-  const [keywords, setKeywords] = useState(""); // 키워드 추출 결과 저장
+  const [sttTextList, setSttTextList] = useState([]); // STT 결과를 배열로 저장
+  const [keywordsList, setKeywordsList] = useState([]); // 키워드 추출 결과를 배열로 저장
   const [isListening, setIsListening] = useState(false); // 음성 인식 중인지 여부 상태
+
+
 
   const modalClose = async () => {
     dispatch(usageActions.closeModal())
@@ -60,7 +61,7 @@ const Translate = () => {
       setSentence(generatedSentence);
       speakText(generatedSentence);
     } catch (error) {
-      console.error("Error:", error);
+      // console.error("Error:", error);
     }
   }, []);
 
@@ -91,21 +92,28 @@ const Translate = () => {
 
     recognition.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
-      setSttText(transcript); // STT 결과 저장
+      setSttTextList((prev) => [...prev, transcript]); // 새로운 STT 결과를 배열에 추가
       console.log("STT 결과:", transcript);
 
       try {
         const response = await instance.post("http://localhost:5000/extract_keywords", {
           sentence: transcript
         });
-        setKeywords(response.data.keywords);
+        setKeywordsList((prev) => [...prev, response.data.keywords]); // 새로운 키워드를 배열에 추가
       } catch (error) {
         console.error("Error extracting keywords:", error);
       }
     };
 
     recognition.onerror = (event) => {
-      console.error("STT 오류:", event.error);
+      if (event.error !== "aborted") {
+        console.error("STT 오류:", event.error);
+      }
+    };
+
+    recognition.onspeechend = () => {
+      recognition.stop();
+      setIsListening(false);
     };
 
     recognition.start();
@@ -135,7 +143,7 @@ const Translate = () => {
           isListeningLocal = true; // 음성 감지 시작
           setIsListening(true);    // 전역 상태 갱신
           startSTT();              // 소리가 감지되면 STT 시작
-        } else if (volume <= 20 && isListeningLocal) {
+        } else if (volume <= 10 && isListeningLocal) {
           isListeningLocal = false; // 음성 감지 종료
           setIsListening(false);    // 전역 상태 갱신
         }
@@ -157,9 +165,9 @@ const Translate = () => {
 
   return (
     <div className='backgroundImg'>
-       <img src='/imgs/hello.gif' alt="Animation" className='.gif-animation' />
+      <img src='/imgs/hello.gif' alt="Animation" className='.gif-animation' />
       <img src="./imgs/blur-hospital.jpg" alt="" className='backgroundImage'/>
-     
+    
       <button ref={buttonRef} className='round' onClick={openModal}>
         <span className="button-text">Start</span>
       </button>
@@ -180,9 +188,13 @@ const Translate = () => {
               <div className="modal-body">
                 {sentence ? <p>{sentence}</p> : <p>문장을 생성 중입니다...</p>}
               </div>
-              {isListening && <p>음성 감지 중...</p>}
-              {sttText && <p>STT 결과: {sttText}</p>}
-              {keywords && <p>키워드 추출: {keywords}</p>}
+              {sttTextList.length > 0 && sttTextList.map((text, index) => (
+                  <p key={index}>{text}</p>
+                ))}
+                {keywordsList.length > 0 && keywordsList.map((keyword, index) => (
+                  <p key={index}>{keyword}</p>
+                ))}
+                {isListening && <p>음성 감지 중...</p>} {/* 음성 감지 중일 때 표시 */}
               <button onClick={() => setIframeChange(!iframeChange)}>전환</button>
             </div>
           </div>
