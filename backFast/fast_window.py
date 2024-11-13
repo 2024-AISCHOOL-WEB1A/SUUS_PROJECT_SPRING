@@ -307,6 +307,10 @@ llm_chain = LLMChain(prompt=prompt, llm=llm_model)
 @app.post("/gpt_sentence")
 async def generate_sentence(request: WordRequest):
     try:
+        # 단어가 없을 경우 문장을 생성하지 않음
+        if not request.word or not request.word.strip():
+            raise HTTPException(status_code=400, detail="수어가 입력되지 않았습니다. 수어를 입력해주세요.")
+
         # 단어를 포함한 프롬프트 생성
         few_shot_prompt = prompt.format(input=request.word)
 
@@ -314,7 +318,11 @@ async def generate_sentence(request: WordRequest):
         response = llm_chain.run(input=request.word)
 
         return {"sentence": response.strip()}
+    except HTTPException as http_error:
+        # 클라이언트에서 보낸 빈 단어에 대한 처리를 포함한 HTTPException 처리
+        raise http_error
     except Exception as e:
+        # 다른 모든 예외에 대한 일반적인 처리
         raise HTTPException(status_code=500, detail=f"Error generating sentence: {str(e)}")
 # 다른 FastAPI 경로와 관련된 코드도 여기에 추가...
 

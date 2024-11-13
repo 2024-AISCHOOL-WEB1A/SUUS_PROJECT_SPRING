@@ -1,14 +1,27 @@
 /* 배경 설정 */
 .backgroundImg {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+width: 100%;
+height: 100%;
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 0;
 }
-
+.texttitle {
+  position: absolute;
+  top: 25%; /* GIF 위에 위치 조정 */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.429); /* 검정색 반투명 배경 */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 1.5em;
+  text-align: center;
+  z-index: 11; /* GIF 이미지 위에 표시되도록 z-index 설정 */
+}
 /* 배경 이미지 설정 */
 .backgroundImage {
   content: "";
@@ -16,7 +29,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 83%;
+  height: 85%; /* 화면 전체를 덮음 */
   background-size: cover;
   background-position: center;
   z-index: 0;
@@ -25,7 +38,7 @@
 /* 아바타 GIF 중앙 배치 */
 .gif-animation {
   position: absolute;
-  top: 52%;
+  top: 54%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 800px;
@@ -33,39 +46,25 @@
   z-index: 10;
 }
 
-/* 오른쪽 하단에 위치한 원형 3D 버튼 스타일 */
+/* 오른쪽 하단에 고정된 원형 3D 버튼 스타일 */
 .button-text {
-  position: absolute;
-  bottom: 180px; /* 화면 하단에서 간격 */
-  right: 30px; /* 화면 오른쪽에서 간격 */
+  position: fixed; /* 항상 고정되도록 설정 */
+  bottom: 30px; /* 화면 하단에서 간격 */
+ right: 50px; /* 화면 오른쪽에서 간격 */
   width: 100px;
   height: 100px;
-  background-color: #3498db; /* 버튼 기본 색상 */
+  background-color: #56b3f1;
   color: #ffffff;
   font-size: 24px;
   font-weight: bold;
   font-family: Arial, sans-serif;
   text-align: center;
-  line-height: 100px; /* 텍스트를 버튼 중앙에 배치 */
+  line-height: 100px;
   cursor: pointer;
-  border-radius: 50%; /* 원형 버튼 */
-  box-shadow: 0px 8px 0 #21618c; /* 그림자를 아래로 */
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  z-index: 10;
-}
-.gif-overlay {
-  position: absolute;
-  top: 22%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #ffffff;
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
-  background-color: rgba(0, 0, 0, 0.5); /* 배경 투명도 설정 */
-  padding: 10px 20px;
-  border-radius: 8px;
-  z-index: 2;
+  border-radius: 50%;
+  box-shadow: 0px 8px 0 #195176;
+ 
+  z-index: 11; /* 아바타와 겹치지 않도록 설정 */
 }
 
 /* 버튼 클릭 시 눌리는 효과 */
@@ -125,12 +124,12 @@
 
 /* 모달 본문 스타일 */
 .modal-body {
-  background-color: #3784f644;
-  color: #4c00ff;
+  background-color: #4990f92a;
+  color: #000000;
   padding: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  text-shadow: 0 0 8px rgba(0, 255, 255, 0.7), 0 0 16px rgba(0, 255, 255, 0.5);
+  
 }
