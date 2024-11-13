@@ -298,7 +298,7 @@ llm_model = ChatOpenAI(
     temperature=0.3,
     top_p=0.9,
     max_tokens=200,
-    openai_api_key=""
+    openai_api_key="sk-HC3j9d1DfypYlrEKNSSEaDpzk5Odrq95mQSmXaCo2ZT3BlbkFJCFacFxCQggwqvH2dhuirJ6oa9uqMgdx8z9i5UXgn0A"
 )
 
 # LLMChain 생성
@@ -348,14 +348,15 @@ class SentenceRequest(BaseModel):
 # gpt-4o API 호출 함수
 def call_gpt4o_api(text: str) -> Optional[str]:
     api_url = "https://api.openai.com/v1/chat/completions"
-    api_key = ""
+    api_key = "sk-HC3j9d1DfypYlrEKNSSEaDpzk5Odrq95mQSmXaCo2ZT3BlbkFJCFacFxCQggwqvH2dhuirJ6oa9uqMgdx8z9i5UXgn0A"
 
     headers = {
         'Authorization': f'Bearer {api_key}',
         'Content-Type': 'application/json'
     }
 
-    prompt = f"다음 문장에서 조사, 어미 및 불필요한 부분을 제거하고 핵심 단어만 추출하여 출력해주세요: {text}"
+    prompt = f"다음 문장에서 핵심 단어만 추출해주세요. 파생어나 합성어의 안내 문구는 포함하지 말고, 핵심 단어만 출력해주세요 환자실은 환자실로 출력해주세요: {text}"
+
 
     payload = {
         'model': 'gpt-4o',
@@ -393,12 +394,13 @@ async def extract_keywords(request: SentenceRequest):
     
     
     
-# 비디오 파일이 frontend 폴더 안에 있음
-VIDEO_DIRECTORY = os.path.join(os.path.dirname(__file__), '../frontend/src/video')  # backFast 폴더 기준으로 상대 경로 설정
+# 비디오 파일 경로 설정
+VIDEO_DIRECTORY = os.path.join(os.path.dirname(__file__), '../frontend/src/video')
 
-@app.get("/video/{video_name}")
-async def get_video(video_name: str):
-    video_path = os.path.join(VIDEO_DIRECTORY, video_name)
+@app.get("/video/{keyword}")
+async def get_video(keyword: str):
+    # 비디오 파일 경로
+    video_path = os.path.join(VIDEO_DIRECTORY, f"{keyword}.mp4")
 
     # 비디오 파일이 존재하는지 확인
     if os.path.exists(video_path):
