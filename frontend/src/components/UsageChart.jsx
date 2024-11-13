@@ -167,7 +167,7 @@ const UsageChart = ({userInfo}) => {
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Value</th>
+                                <th>Hour</th>
                             </tr>
                         </thead>
                         <tbody>

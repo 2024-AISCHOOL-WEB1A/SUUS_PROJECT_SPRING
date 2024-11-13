@@ -154,15 +154,15 @@ const Login_min = () => {
             });
 
             alert(res.data);
-            setSignUpCom({ 
-                companyId: "", 
-                companyPw: "", 
-                companyName: "", 
-                contact: "", 
-                cardNum: "", 
-                cardYuhyoDate: "", 
-                ssnFront: "", 
-                ssnBack: "" 
+            setSignUpCom({
+                companyId: "",
+                companyPw: "",
+                companyName: "",
+                contact: "",
+                cardNum: "",
+                cardYuhyoDate: "",
+                ssnFront: "",
+                ssnBack: ""
             });
         }
         catch (error) {
@@ -189,8 +189,8 @@ const Login_min = () => {
         }
         try {
             const res = await instance.post("/SignUpUser", {
-                userId: signUpUser.userId, 
-                userPw: signUpUser.userPw, 
+                userId: signUpUser.userId,
+                userPw: signUpUser.userPw,
                 userName: signUpUser.userName,
                 companyId: signUpUser.companyId
             });
@@ -258,14 +258,16 @@ const Login_min = () => {
                                     className="input" value={signUpCom.cardNum} onChange={handleSignComChange} />
                                 <input type="text" placeholder="카드 유효기간" name='cardYuhyoDate'
                                     className="input" value={signUpCom.cardYuhyoDate} onChange={handleSignComChange} />
-                                
+
                                 {/* 사업자번호 두 필드로 분리 */}
                                 <div className="input-group">
                                     <input type="text" placeholder="주민등록번호 6자리" name='ssnFront'
                                         className="input" value={signUpCom.ssnFront} onChange={handleSsnFrontChange} maxLength="6" />
                                     <span>-</span>
-                                    <input type="text" placeholder="주민등록번호 1자리" name='ssnBack' id='ssnBack'
-                                        className="input" value={signUpCom.ssnBack} onChange={handleSsnBackChange} maxLength="1" />
+
+                                    <input type="text" placeholder="" name='ssnBack' id='ssnBack'
+                                        className="backinput" value={signUpCom.ssnBack} onChange={handleSsnBackChange} maxLength="1" />
+                                    <span>******</span>
                                 </div>
 
                                 <button className="submit-button" onClick={submitComSignUp}>Sign Up</button>
