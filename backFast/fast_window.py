@@ -4,9 +4,22 @@ import mediapipe as mp
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from PIL import Image, ImageDraw, ImageFont
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+# 새로 추가한 부분
+from pydantic import BaseModel
+from langchain.prompts import PromptTemplate, FewShotPromptTemplate
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import LLMChain
+import os
+import requests
+from typing import Optional
+from konlpy.tag import Okt  # 형태소 분석을 위한 konlpy의 Okt 사용
+
+
+
 
 model = load_model('./my_model4.h5')
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -243,3 +256,144 @@ def video_feed():
             cap.release()
             cv2.destroyAllWindows()
     return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+
+
+
+
+# GPT-4o모델을 사용한 api 단어->문장 만드는곳
+# 요청 모델 정의
+# 요청 모델 정의
+class WordRequest(BaseModel):
+    word: str
+
+# Few-shot 예시 정의
+examples = [
+    {"input": "환자, 보건소, 치료", "output": "환자는 보건소에서 치료를 받으세요."},
+    {"input": "정신장애, 환자, 상담", "output": "정신장애 환자는 상담이 필요해요."},
+    {"input": "구급차, 화상, 환자, 병원", "output": "구급차가 화상 환자를 병원으로 데려간다."},
+    {"input": "임신, 순산, 정밀검사", "output": "임산부는 순산을 위해 정밀검사를 받으세요."},
+    {"input": "환자, 금연, 결심, 회복", "output": "환자는 금연을 결심하고 회복 중이에요."},
+    {"input": "피곤, 나, 보건소, 진단서", "output": "피곤한 나는 보건소에서 진단서를 받으세요."},
+    {"input": "칼슘, 오줌, 부족, 이상", "output": "칼슘 부족으로 오줌이 이상했다."},
+    {"input": "손, 나, 병원, 붕대", "output": "손이 다친 나는 병원에서 붕대를 받으세요."},
+    {"input": "나, 몸, 통증, 보건소", "output": "나는 몸에 통증을 느끼고 보건소에 왔다."},
+    {"input": "신체적장애, 치료, 병원", "output": "신체적장애인은 치료를 받기 위해 병원에 왔다."},
+    {"input": "두근거리다, 전염, 검사", "output": "두근거림으로 인해 전염병 검사를 받으세요."},
+    {"input": "여자, 노화, 피곤", "output": "여자는 노화로 인한 피로를 느꼈다."},
+    {"input": "불면증, 식도염", "output": "불면증으로 인해 식도염이 생겼다."},
+    {"input": "알겠습니다, 감사합니다", "output": "알겠습니다. 감사합니다."}
+]
+
+# Few-shot 프롬프트 생성
+prompt = FewShotPromptTemplate(
+    examples=examples,
+    example_prompt=PromptTemplate.from_template("{input} → {output}"),
+    input_variables=["input"],
+    suffix="수어 단어를 사용하여 자연스러운 조사를 사용하여 하나의 문장으로 만들어주세요. 마지막 어미를 ~요자로 끝내서 만들어주세요. 단어의 순서는 반드시 지켜야 합니다. 결과 문장만 제공해주세요.: {input}"
+)
+
+# LLM 모델 정의
+llm_model = ChatOpenAI(
+    model_name="gpt-4o",
+    temperature=0.3,
+    top_p=0.9,
+    max_tokens=200,
+    openai_api_key=""
+)
+
+# LLMChain 생성
+llm_chain = LLMChain(prompt=prompt, llm=llm_model)
+
+@app.post("/gpt_sentence")
+async def generate_sentence(request: WordRequest):
+    try:
+        # 단어를 포함한 프롬프트 생성
+        few_shot_prompt = prompt.format(input=request.word)
+
+        # LLMChain을 사용하여 문장 생성
+        response = llm_chain.run(input=request.word)
+
+        return {"sentence": response.strip()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating sentence: {str(e)}")
+# 다른 FastAPI 경로와 관련된 코드도 여기에 추가...
+
+
+
+# STT 모델 
+# 요청 모델 정의
+
+
+# 요청 모델 정의
+# 형태소 분석을 통한 전처리 함수
+def preprocess_sentence(sentence: str):
+    okt = Okt()
+    tokens = okt.pos(sentence)
+    # 조사(Josa), 어미(Eomi), 구두점(Punctuation) 제거
+    meaningful_words = [word for word, tag in tokens if tag not in ['Josa', 'Eomi', 'Punctuation']]
+    return meaningful_words
+
+# 요청 데이터 모델 정의
+class SentenceRequest(BaseModel):
+    sentence: str
+
+# gpt-4o API 호출 함수
+def call_gpt4o_api(text: str) -> Optional[str]:
+    api_url = "https://api.openai.com/v1/chat/completions"
+    api_key = ""
+
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
+
+    prompt = f"다음 문장에서 조사, 어미 및 불필요한 부분을 제거하고 핵심 단어만 추출하여 출력해주세요: {text}"
+
+    payload = {
+        'model': 'gpt-4o',
+        'messages': [{
+            'role': 'user',
+            'content': prompt
+        }]
+    }
+
+    try:
+        response = requests.post(api_url, headers=headers, json=payload)
+        response.raise_for_status()
+        response_data = response.json()
+        processed_text = response_data['choices'][0]['message']['content']
+        return processed_text.strip()
+    except requests.exceptions.RequestException as e:
+        print(f"GPT-4o API 요청 오류: {e}")
+        return None
+
+# FastAPI 엔드포인트 설정
+@app.post("/extract_keywords")
+async def extract_keywords(request: SentenceRequest):
+    try:
+        # 전처리한 문장 토큰 목록 생성
+        preprocessed_text = " ".join(preprocess_sentence(request.sentence))
+        gpt4o_response = call_gpt4o_api(preprocessed_text)
+        if gpt4o_response:
+            return {"keywords": gpt4o_response}
+        else:
+            raise HTTPException(status_code=500, detail="GPT-4o API 요청 실패")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"오류 발생: {str(e)}")
+    
+    
+    
+    
+    
+# 비디오 파일이 frontend 폴더 안에 있음
+VIDEO_DIRECTORY = os.path.join(os.path.dirname(__file__), '../frontend/src/video')  # backFast 폴더 기준으로 상대 경로 설정
+
+@app.get("/video/{video_name}")
+async def get_video(video_name: str):
+    video_path = os.path.join(VIDEO_DIRECTORY, video_name)
+
+    # 비디오 파일이 존재하는지 확인
+    if os.path.exists(video_path):
+        return FileResponse(video_path)
+    else:
+        raise HTTPException(status_code=404, detail="Video not found")
