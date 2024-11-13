@@ -6,6 +6,7 @@ import { usageActions } from '../redux/reducer/usageSlice';
 import { TweenMax, Expo, Back } from 'gsap';
 import axios from 'axios';
 import '../css/Translate.css';
+import { Unity, useUnityContext } from "react-unity-webgl";
 
 const Translate = () => {
   const buttonRef = useRef(null); // 버튼 참조
@@ -155,10 +156,18 @@ const Translate = () => {
     }
   }, [isModalOpen, startAudioProcessing]);
 
+  // unity 설정
+  const { unityProvider } = useUnityContext({
+    loaderUrl: "Build/cache2.loader.js",
+    dataUrl: "Build/cache2.data",
+    frameworkUrl: "Build/cache2.framework.js",
+    codeUrl: "Build/cache2.wasm",
+  });
+
   return (
     <div className='backgroundImg'>
-       <img src='/imgs/hello.gif' alt="Animation" className='.gif-animation' />
-      <img src="./imgs/blur-hospital.jpg" alt="" className='backgroundImage'/>
+       <img src='imgs/hello.gif' alt="Animation" className='.gif-animation' />
+      <img src="imgs/blur-hospital.jpg" alt="" className='backgroundImage'/>
      
       <button ref={buttonRef} className='round' onClick={openModal}>
         <span className="button-text">Start</span>
@@ -171,18 +180,18 @@ const Translate = () => {
               {iframeChange ? 
                 <iframe title={"Video Feed"} src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
                 :
-                <iframe title={"Empty Frame"} src="" width={1280} height={720}></iframe>
+                <Unity unityProvider={unityProvider} style={{width:"500px", height:"200px", zIndex:"500", background:"red"}}/>
               }
               <span className="close" onClick={modalClose}>&times;</span>
             </div>
             {/* 하단 부분 */}
             <div className="modal-body">
-              <div className="modal-body">
+              {/* <div className="modal-body">
                 {sentence ? <p>{sentence}</p> : <p>문장을 생성 중입니다...</p>}
               </div>
               {isListening && <p>음성 감지 중...</p>}
               {sttText && <p>STT 결과: {sttText}</p>}
-              {keywords && <p>키워드 추출: {keywords}</p>}
+              {keywords && <p>키워드 추출: {keywords}</p>} */}
               <button onClick={() => setIframeChange(!iframeChange)}>전환</button>
             </div>
           </div>
