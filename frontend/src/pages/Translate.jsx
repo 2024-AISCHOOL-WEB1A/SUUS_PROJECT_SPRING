@@ -176,7 +176,8 @@ const Translate = () => {
                 <p key={index}>{keyword}</p>
               ))}
               {isListening && <p>음성 감지 중...</p>} {/* 음성 감지 중일 때 표시 */}
-              <button onClick={() => setIframeChange(!iframeChange)}>전환</button>
+              <button onClick={() => setIframeChange(!iframeChange)}className='changebtn'>전환</button>
+              
             </div>
           </div>
         </div>
