@@ -3,18 +3,13 @@ import '../css/Translate.css';
 import instance from '../axios';
 import { useDispatch, useSelector } from "react-redux";
 import { usageActions } from '../redux/reducer/usageSlice';
-// import { TweenMax, Expo, Back } from 'gsap';
 import '../css/Translate.css';
+import { Unity, useUnityContext } from "react-unity-webgl";
 
 const Translate = () => {
   const buttonRef = useRef(null); // 버튼 참조
   const dispatch = useDispatch();
   const { isModalOpen } = useSelector((state) => state.usage);
-
-  const openModal = () => {
-    dispatch(usageActions.openModal());
-  };
-
   const [sentence, setSentence] = useState(""); // 서버에서 받은 문장 저장
   const [iframeChange, setIframeChange] = useState(false);
   const [sttTextList, setSttTextList] = useState([]); // STT 결과를 배열로 저장
@@ -23,6 +18,9 @@ const Translate = () => {
   const [videoSrc, setVideoSrc] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0); // 현재 재생 중인 키워드의 인덱스
 
+  const openModal = () => {
+    dispatch(usageActions.openModal());
+  };
 
   const modalClose = async () => {
     dispatch(usageActions.closeModal());
@@ -157,7 +155,14 @@ const Translate = () => {
     setCurrentIndex((prevIndex) => prevIndex + 1);
   };
 
-  
+  // unity 설정
+  const { unityProvider } = useUnityContext({
+    loaderUrl: "Build/cache2.loader.js",
+    dataUrl: "Build/cache2.data",
+    frameworkUrl: "Build/cache2.framework.js",
+    codeUrl: "Build/cache2.wasm",
+  });
+
   return (
     <div className="backgroundImg">
       <img src="/imgs/blur-hospital.jpg" alt="" className="backgroundImage" />
@@ -172,17 +177,15 @@ const Translate = () => {
         <div className="modal">
           <div className="modal-content">
             <div className="modal-header">
-              {iframeChange ? (
-                <iframe title="Video Feed" src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
-              ) : (
-                <iframe title="Empty Frame" src="" width={1280} height={720}></iframe>
-              )}
+              {iframeChange ?
+                <iframe title={"Video Feed"} src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
+                :
+                <Unity unityProvider={unityProvider} style={{ width: "500px", height: "200px", zIndex: "500", background: "red" }} />
+              }
               <span className="close" onClick={modalClose}>&times;</span>
             </div>
             <div className="modal-body">
-              <div className="modal-body">
-                {sentence ? <p>{sentence}</p> : <p>문장을 생성 중입니다...</p>}
-              </div>
+
               {sttTextList.length > 0 && sttTextList.map((text, index) => (
                 <p key={index}>{text}</p>
               ))}
@@ -200,6 +203,8 @@ const Translate = () => {
               }}>
 
               </video>
+              <button onClick={() => setIframeChange(!iframeChange)}className='changebtn'>전환</button>
+              
             </div>
           </div>
         </div>
