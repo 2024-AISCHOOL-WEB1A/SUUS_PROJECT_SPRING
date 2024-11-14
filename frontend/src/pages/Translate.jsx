@@ -4,7 +4,6 @@ import instance from '../axios';
 import { useDispatch, useSelector } from "react-redux";
 import { usageActions } from '../redux/reducer/usageSlice';
 import '../css/Translate.css';
-import { Unity, useUnityContext } from "react-unity-webgl";
 
 const Translate = () => {
   const buttonRef = useRef(null); // 버튼 참조
@@ -170,15 +169,69 @@ const Translate = () => {
     setVideoSrc("");            // 비디오 소스 초기화
     setCurrentIndex(0);         // 키워드 인덱스 초기화
   };
-  
 
-  // unity 설정
-  const { unityProvider } = useUnityContext({
-    loaderUrl: "Build/cache2.loader.js",
-    dataUrl: "Build/cache2.data",
-    frameworkUrl: "Build/cache2.framework.js",
-    codeUrl: "Build/cache2.wasm",
-  });
+  useEffect(() => {
+    let ws; // WebSocket 객체
+    let pingInterval; // 핑 메시지를 위한 인터벌
+
+    // WebSocket 이벤트 핸들러 정의
+    const handleOpen = () => {
+      console.log("WebSocket 연결 성공");
+
+      // 30초마다 핑 메시지 전송
+      pingInterval = setInterval(() => {
+        ws.send(JSON.stringify({ type: "ping" }));
+      }, 3000);
+    };
+
+    const handleMessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("수신 데이터:", data.sentence.content);
+
+        // 수신된 문장을 상태에 추가
+        if (data.sentence) {
+          speakText(data.sentence)
+        }
+      } catch (error) {
+        console.error("JSON 파싱 에러:", error);
+      }
+    };
+
+    const handleError = (error) => {
+      console.error("WebSocket 에러 발생:", error.message || error);
+    };
+
+    const handleClose = (event) => {
+      console.log("WebSocket 연결 종료", "코드:", event.code, "이유:", event.reason);
+      clearInterval(pingInterval); // WebSocket 종료 시 인터벌 제거
+
+      if (event.code !== 1000) {
+        console.error("비정상 종료: 재연결 시도 중...");
+        setTimeout(() => {
+          initializeWebSocket(); // 재연결
+        }, 2000);
+      }
+    };
+
+    const initializeWebSocket = () => {
+      ws = new WebSocket("ws://localhost:5000/ws/prediction");
+      ws.onopen = handleOpen;
+      ws.onmessage = handleMessage;
+      ws.onerror = handleError;
+      ws.onclose = handleClose;
+    };
+
+    if (isModalOpen) {
+      initializeWebSocket(); // 모달 열릴 때 WebSocket 초기화
+    }
+
+    return () => {
+      // 모달이 닫힐 때 WebSocket 및 인터벌 정리
+      if (ws) ws.close();
+      clearInterval(pingInterval);
+    };
+  }, [isModalOpen]);
 
   return (
     <div className="backgroundImg">
@@ -197,7 +250,8 @@ const Translate = () => {
               {iframeChange ?
                 <iframe title={"Video Feed"} className="no-scroll-iframe" src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
                 :
-                <Unity unityProvider={unityProvider} style={{ width: "500px", height: "200px", zIndex: "500", background: "red" }} />
+                <video src={videoSrc} width={400} height={300} autoPlay  onEnded={handleVideoEnd} style={{
+                  position: 'absolute', bottom: '310px', right: '285px', zIndex: 10}}></video>
               }
               <span className="close" onClick={modalClose}>&times;</span>
             </div>
@@ -210,22 +264,11 @@ const Translate = () => {
                 <p key={index}>{keyword}</p>
               ))} */}
               {isListening && <p>음성 감지 중...</p>} {/* 음성 감지 중일 때 표시 */}
-
-              {/* video 나타나는 곳 */}
-              {videoSrc && (
-                <video src={videoSrc} width={300} height={200} autoPlay onEnded={handleVideoEnd} style={{
-                  position: 'fixed',
-                  bottom: '145px',  // 하단 10px 위치
-                  right: '310px',   // 오른쪽 10px 위치
-                  zIndex: 10,      // iframe 위에 표시되도록
-                }}>
-                </video>
-              )}
+              
               <button onClick={() => {
-                setIframeChange(!iframeChange);
-                handleClearText();
-              }} className='changebtn'>전환</button>
-
+                setIframeChange(!iframeChange)
+                handleClearText() }} className = 'changebtn'>전환</button>
+              
             </div>
           </div>
         </div>
