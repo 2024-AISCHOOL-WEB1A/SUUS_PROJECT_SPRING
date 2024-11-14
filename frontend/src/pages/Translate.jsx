@@ -26,36 +26,10 @@ const Translate = () => {
     dispatch(usageActions.closeModal());
     try {
       const res = await instance.get("http://localhost:5000/shutdown");
-      console.log(res.data);
     } catch (e) {
       console.error(e);
     }
   };
-
-  const generateSentenceAndSpeak = useCallback(async () => {
-    try {
-      const response = await instance.post("http://localhost:5000/gpt_sentence", {
-        word: ""
-      });
-      const generatedSentence = response.data.sentence;
-      setSentence(generatedSentence);
-      speakText(generatedSentence);
-    } catch (error) {
-      // console.error("Error:", error);
-    }
-  }, []);
-
-  const speakText = (text) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ko-KR';
-    window.speechSynthesis.speak(utterance);
-  };
-
-  useEffect(() => {
-    if (isModalOpen) {
-      generateSentenceAndSpeak();
-    }
-  }, [isModalOpen, generateSentenceAndSpeak]);
 
   const startSTT = useCallback(() => {
     if (!("webkitSpeechRecognition" in window)) {
@@ -163,10 +137,80 @@ const Translate = () => {
     codeUrl: "Build/cache2.wasm",
   });
 
+  const speakText = (text) => {
+    setSentence(text);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ko-KR';
+    window.speechSynthesis.speak(utterance);
+  };
+
+  useEffect(() => {
+    let ws; // WebSocket 객체
+    let pingInterval; // 핑 메시지를 위한 인터벌
+
+    // WebSocket 이벤트 핸들러 정의
+    const handleOpen = () => {
+      console.log("WebSocket 연결 성공");
+
+      // 30초마다 핑 메시지 전송
+      pingInterval = setInterval(() => {
+        ws.send(JSON.stringify({ type: "ping" }));
+      }, 3000);
+    };
+
+    const handleMessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("수신 데이터:", data.sentence.content);
+
+        // 수신된 문장을 상태에 추가
+        if (data.sentence) {
+          speakText(data.sentence)
+        }
+      } catch (error) {
+        console.error("JSON 파싱 에러:", error);
+      }
+    };
+
+    const handleError = (error) => {
+      console.error("WebSocket 에러 발생:", error.message || error);
+    };
+
+    const handleClose = (event) => {
+      console.log("WebSocket 연결 종료", "코드:", event.code, "이유:", event.reason);
+      clearInterval(pingInterval); // WebSocket 종료 시 인터벌 제거
+
+      if (event.code !== 1000) {
+        console.error("비정상 종료: 재연결 시도 중...");
+        setTimeout(() => {
+          initializeWebSocket(); // 재연결
+        }, 2000);
+      }
+    };
+
+    const initializeWebSocket = () => {
+      ws = new WebSocket("ws://localhost:5000/ws/prediction");
+      ws.onopen = handleOpen;
+      ws.onmessage = handleMessage;
+      ws.onerror = handleError;
+      ws.onclose = handleClose;
+    };
+
+    if (isModalOpen) {
+      initializeWebSocket(); // 모달 열릴 때 WebSocket 초기화
+    }
+
+    return () => {
+      // 모달이 닫힐 때 WebSocket 및 인터벌 정리
+      if (ws) ws.close();
+      clearInterval(pingInterval);
+    };
+  }, [isModalOpen]);
+
   return (
     <div className="backgroundImg">
-      <img src="/imgs/blur-hospital.jpg" alt="" className="backgroundImage" />
-      <img src="/imgs/hello.gif" alt="Animation" className="gif-animation" />
+      <img src="/imgs/blur-hospital.jpg" className="backgroundImage" />
+      <img src="/imgs/hello.gif" className="gif-animation" />
       <span className="texttitle">수어 번역을 시작하기 위해서 버튼을 눌러주세요</span>
 
       <button ref={buttonRef} className="round" onClick={openModal}>
@@ -178,14 +222,14 @@ const Translate = () => {
           <div className="modal-content">
             <div className="modal-header">
               {iframeChange ?
-                <iframe title={"Video Feed"} src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
+                <iframe title="Video Feed" src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1300} height={725}></iframe>
                 :
-                <Unity unityProvider={unityProvider} style={{ width: "500px", height: "200px", zIndex: "500", background: "red" }} />
+                <Unity unityProvider={unityProvider} style={{ width: "1280px", height: "720px", zIndex: "500" }} />
               }
               <span className="close" onClick={modalClose}>&times;</span>
             </div>
             <div className="modal-body">
-
+              {sentence ? <p>{sentence}</p> : <p>문장을 생성 중입니다...</p>}
               {sttTextList.length > 0 && sttTextList.map((text, index) => (
                 <p key={index}>{text}</p>
               ))}

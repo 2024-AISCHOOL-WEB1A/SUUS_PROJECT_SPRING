@@ -4,25 +4,23 @@ import mediapipe as mp
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from PIL import Image, ImageDraw, ImageFont
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+from queue import Queue
+import asyncio
+from fastapi import WebSocket
+import openai
 
 # 새로 추가한 부분
 from pydantic import BaseModel
-from langchain.prompts import PromptTemplate, FewShotPromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
+from langchain.prompts import FewShotPromptTemplate, PromptTemplate
+from langchain_community.chat_models import ChatOpenAI
 import os
 import requests
 from typing import Optional
 from konlpy.tag import Okt  # 형태소 분석을 위한 konlpy의 Okt 사용
-
-
-
-
-model = load_model('./my_model4.h5')
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 app = FastAPI()
 
@@ -34,16 +32,63 @@ app.add_middleware(
     allow_headers=["*"],  # 허용할 HTTP 헤더
 )
 
+model = load_model('./my_model4.h5')
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+labels = np.load("./label_classes_korean.npy")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+openai_api_key = os.getenv("OPENAPI_KEY")
+examples = [
+        {"input": "환자, 보건소, 치료", "output": "환자는 보건소에서 치료를 받으세요."},
+        {"input": "정신장애, 환자, 상담", "output": "정신장애 환자는 상담이 필요해요."},
+        {"input": "구급차, 화상, 환자, 병원", "output": "구급차가 화상 환자를 병원으로 데려간다."},
+        {"input": "임신, 순산, 정밀검사", "output": "임산부는 순산을 위해 정밀검사를 받으세요."},
+        {"input": "환자, 금연, 결심, 회복", "output": "환자는 금연을 결심하고 회복 중이에요."},
+        {"input": "피곤, 나, 보건소, 진단서", "output": "피곤한 나는 보건소에서 진단서를 받으세요."},
+        {"input": "칼슘, 오줌, 부족, 이상", "output": "칼슘 부족으로 오줌이 이상했다."},
+        {"input": "손, 나, 병원, 붕대", "output": "손이 다친 나는 병원에서 붕대를 받으세요."},
+        {"input": "나, 몸, 통증, 보건소", "output": "나는 몸에 통증을 느끼고 보건소에 왔다."},
+        {"input": "신체적장애, 치료, 병원", "output": "신체적장애인은 치료를 받기 위해 병원에 왔다."},
+        {"input": "두근거리다, 전염, 검사", "output": "두근거림으로 인해 전염병 검사를 받으세요."},
+        {"input": "여자, 노화, 피곤", "output": "여자는 노화로 인한 피로를 느꼈다."},
+        {"input": "불면증, 식도염", "output": "불면증으로 인해 식도염이 생겼다."},
+        {"input": "알겠습니다, 감사합니다", "output": "알겠습니다. 감사합니다."}
+    ]
+
+prompt = FewShotPromptTemplate(
+        examples=examples,
+        example_prompt=PromptTemplate.from_template("{input} → {output}"),
+        input_variables=["input"],
+        suffix="수어 단어를 사용하여 자연스러운 조사를 사용하여 하나의 문장으로 만들어주세요. 마지막 어미를 ~요자로 끝내서 만들어주세요. 단어의 순서는 반드시 지켜야 합니다. 결과 문장만 제공해주세요.: {input}"
+    )
+
+llm_model = ChatOpenAI(
+    model_name="gpt-4o",
+    temperature=0.3,
+    max_tokens=200,
+    model_kwargs={"top_p": 0.9},
+    openai_api_key=openai_api_key
+)
+
+runnable_chain = prompt | llm_model
+
 # MediaPipe Holistic 초기화
 mp_holistic = mp.solutions.holistic
-holistic = mp_holistic.Holistic(min_detection_confidence=0.7, min_tracking_confidence=0.7)
 mp_drawing = mp.solutions.drawing_utils
+holistic = mp_holistic.Holistic(min_detection_confidence=0.7, min_tracking_confidence=0.7)
 
 # 해상도 설정
 target_width = 1280
 target_height = 720
 
+# cap 사용하기 위한 전역변수
 cap = None
+
+# 한글 폰트 설정 (Pillow 사용)
+fontpath = "fonts/gulim.ttc"  # 시스템에 설치된 한글 폰트 경로
+font = ImageFont.truetype(fontpath, 32)
 
 # 포즈에서 추출하고 싶은 키포인트 인덱스 설정 (어깨, 팔꿈치, 손목, 엉덩이, 무릎, 발목)
 desired_pose_indices = [15, 13, 11, 12, 14, 16]  # 원하는 포즈 키포인트 인덱스
@@ -56,10 +101,6 @@ desired_face_indices = [
     362, 398, 384, 385, 386, 387, 388, 466, 263, 249, 390, 373, 374, 380, 381, 382,  # 왼 눈
     78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95  # 입
 ]
-
-# 한글 폰트 설정 (Pillow 사용)
-fontpath = "fonts/gulim.ttc"  # 시스템에 설치된 한글 폰트 경로
-font = ImageFont.truetype(fontpath, 32)
 
 # 윤곽선 그리기 함수
 def draw_human_contour(frame):
@@ -143,7 +184,6 @@ def shutdown_event():
         cap = None
     return "cap release"
     
-
 @app.get("/video_feed")
 def video_feed():
     global cap
@@ -205,12 +245,6 @@ def video_feed():
 
                 # 적절한 위치에 들어왔을 때 손의 좌표 확인 및 시작점 설정
                 if inside_proper_position and holistic_results.pose_landmarks:
-                    # 손의 좌표 화면에 표시
-                    for idx in desired_pose_indices:
-                        landmark = holistic_results.pose_landmarks.landmark[idx]
-                        x = int(landmark.x * frame_width)
-                        y = int(landmark.y * frame_height)
-                        cv2.circle(frame, (x, y), 10, (0, 255, 0), -1)
 
                     # 손이 감지되면 시작점 기록
                     if not hand_in_frame and is_hand_in_frame(holistic_results.pose_landmarks.landmark, frame_height):
@@ -234,12 +268,14 @@ def video_feed():
                         prediction = model.predict(input_sequence)
 
                         # 예측 결과 확인
-                        predicted_label = np.argmax(prediction, axis=1)
-                        print(f"모델로 전달된 프레임의 예측 라벨: {predicted_label[0]}")  # 예측 라벨 출력
-                        direction_message = f"예측된 라벨: {predicted_label[0]}"
-                        print(predicted_label[0])
-                        print(direction_message)
+                        predicted_label = np.argmax(prediction, axis=1)[0]
+                        print(predicted_label)
+                        word = labels[predicted_label]
+                        result_queue.put(word)
+                        print(result_queue)
 
+                        print(f"예측된 라벨: {predicted_label}")
+                        print(f"예측된 라벨값: {labels[predicted_label]}")
                         frames.clear()  # 시퀀스 전달 후 리스트 초기화
 
                 # 한글 메시지를 화면에 표시
@@ -252,158 +288,83 @@ def video_feed():
                 yield (b'--frame\r\n'
                         b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
                 frame_count += 1
+        except Exception as e:
+            print(f"스트림 처리 중 오류 발생: {e}")
         finally:
             cap.release()
             cv2.destroyAllWindows()
     return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+# ============================================================================================================================
 
-
-
-
-# GPT-4o모델을 사용한 api 단어->문장 만드는곳
-# 요청 모델 정의
-# 요청 모델 정의
-class WordRequest(BaseModel):
-    word: str
-
-# Few-shot 예시 정의
-examples = [
-    {"input": "환자, 보건소, 치료", "output": "환자는 보건소에서 치료를 받으세요."},
-    {"input": "정신장애, 환자, 상담", "output": "정신장애 환자는 상담이 필요해요."},
-    {"input": "구급차, 화상, 환자, 병원", "output": "구급차가 화상 환자를 병원으로 데려간다."},
-    {"input": "임신, 순산, 정밀검사", "output": "임산부는 순산을 위해 정밀검사를 받으세요."},
-    {"input": "환자, 금연, 결심, 회복", "output": "환자는 금연을 결심하고 회복 중이에요."},
-    {"input": "피곤, 나, 보건소, 진단서", "output": "피곤한 나는 보건소에서 진단서를 받으세요."},
-    {"input": "칼슘, 오줌, 부족, 이상", "output": "칼슘 부족으로 오줌이 이상했다."},
-    {"input": "손, 나, 병원, 붕대", "output": "손이 다친 나는 병원에서 붕대를 받으세요."},
-    {"input": "나, 몸, 통증, 보건소", "output": "나는 몸에 통증을 느끼고 보건소에 왔다."},
-    {"input": "신체적장애, 치료, 병원", "output": "신체적장애인은 치료를 받기 위해 병원에 왔다."},
-    {"input": "두근거리다, 전염, 검사", "output": "두근거림으로 인해 전염병 검사를 받으세요."},
-    {"input": "여자, 노화, 피곤", "output": "여자는 노화로 인한 피로를 느꼈다."},
-    {"input": "불면증, 식도염", "output": "불면증으로 인해 식도염이 생겼다."},
-    {"input": "알겠습니다, 감사합니다", "output": "알겠습니다. 감사합니다."}
-]
-
-# Few-shot 프롬프트 생성
-prompt = FewShotPromptTemplate(
-    examples=examples,
-    example_prompt=PromptTemplate.from_template("{input} → {output}"),
-    input_variables=["input"],
-    suffix="수어 단어를 사용하여 자연스러운 조사를 사용하여 하나의 문장으로 만들어주세요. 마지막 어미를 ~요자로 끝내서 만들어주세요. 단어의 순서는 반드시 지켜야 합니다. 결과 문장만 제공해주세요.: {input}"
-)
-
-# LLM 모델 정의
-llm_model = ChatOpenAI(
-    model_name="gpt-4o",
-    temperature=0.3,
-    top_p=0.9,
-    max_tokens=200,
-    openai_api_key="sk-HC3j9d1DfypYlrEKNSSEaDpzk5Odrq95mQSmXaCo2ZT3BlbkFJCFacFxCQggwqvH2dhuirJ6oa9uqMgdx8z9i5UXgn0A"
-)
-
-# LLMChain 생성
-llm_chain = LLMChain(prompt=prompt, llm=llm_model)
-
-@app.post("/gpt_sentence")
-async def generate_sentence(request: WordRequest):
+result_queue = Queue()
+sentence_buffer = []  # 단어를 모아둘 버퍼
+# GPT-4 호출 함수
+async def generate_sentence_with_gpt4(words):
+    """
+    GPT-4 API를 호출하여 입력 단어로 문장을 생성합니다.
+    """
     try:
-        # 단어가 없을 경우 문장을 생성하지 않음
-        if not request.word or not request.word.strip():
-            raise HTTPException(status_code=400, detail="수어가 입력되지 않았습니다. 수어를 입력해주세요.")
+        # 입력이 리스트인 경우 문자열로 변환
+        if isinstance(words, list):
+            words = ", ".join(words)
 
-        # 단어를 포함한 프롬프트 생성
-        few_shot_prompt = prompt.format(input=request.word)
+        # RunnableSequence를 사용하여 실행
+        response = runnable_chain.invoke({"input": words})
 
-        # LLMChain을 사용하여 문장 생성
-        response = llm_chain.run(input=request.word)
-
-        return {"sentence": response.strip()}
-    except HTTPException as http_error:
-        # 클라이언트에서 보낸 빈 단어에 대한 처리를 포함한 HTTPException 처리
-        raise http_error
+        # 반환된 값이 numpy.str_ 타입일 수 있으므로 str()로 변환
+        return str(response.content).strip() if response else "문장을 생성할 수 없습니다."
     except Exception as e:
-        # 다른 모든 예외에 대한 일반적인 처리
-        raise HTTPException(status_code=500, detail=f"Error generating sentence: {str(e)}")
-# 다른 FastAPI 경로와 관련된 코드도 여기에 추가...
+        # 예외 처리 및 로그 출력
+        print(f"GPT-4 호출 중 에러 발생: {e}")
+        return "문장 생성 중 오류가 발생했습니다."
 
-
-
-# STT 모델 
-# 요청 모델 정의
-
-
-# 요청 모델 정의
-# 형태소 분석을 통한 전처리 함수
-def preprocess_sentence(sentence: str):
-    okt = Okt()
-    tokens = okt.pos(sentence)
-    # 조사(Josa), 어미(Eomi), 구두점(Punctuation) 제거
-    meaningful_words = [word for word, tag in tokens if tag not in ['Josa', 'Eomi', 'Punctuation']]
-    return meaningful_words
-
-# 요청 데이터 모델 정의
-class SentenceRequest(BaseModel):
-    sentence: str
-
-# gpt-4o API 호출 함수
-def call_gpt4o_api(text: str) -> Optional[str]:
-    api_url = "https://api.openai.com/v1/chat/completions"
-    api_key = "sk-HC3j9d1DfypYlrEKNSSEaDpzk5Odrq95mQSmXaCo2ZT3BlbkFJCFacFxCQggwqvH2dhuirJ6oa9uqMgdx8z9i5UXgn0A"
-
-    headers = {
-        'Authorization': f'Bearer {api_key}',
-        'Content-Type': 'application/json'
-    }
-
-    prompt = f"다음 문장에서 핵심 단어만 추출해주세요. 파생어나 합성어의 안내 문구는 포함하지 말고, 핵심 단어만 출력해주세요 환자실은 환자실로 출력해주세요: {text}"
-
-
-    payload = {
-        'model': 'gpt-4o',
-        'messages': [{
-            'role': 'user',
-            'content': prompt
-        }]
-    }
-
+@app.websocket("/ws/prediction")
+async def prediction_websocket(websocket: WebSocket):
     try:
-        response = requests.post(api_url, headers=headers, json=payload)
-        response.raise_for_status()
-        response_data = response.json()
-        processed_text = response_data['choices'][0]['message']['content']
-        return processed_text.strip()
-    except requests.exceptions.RequestException as e:
-        print(f"GPT-4o API 요청 오류: {e}")
-        return None
+        print("WebSocket 엔드포인트에 접근함")  # 디버깅 메시지
+        await websocket.accept()
+        print("WebSocket 연결 수락됨")  # 디버깅 메시지
 
-# FastAPI 엔드포인트 설정
-@app.post("/extract_keywords")
-async def extract_keywords(request: SentenceRequest):
-    try:
-        # 전처리한 문장 토큰 목록 생성
-        preprocessed_text = " ".join(preprocess_sentence(request.sentence))
-        gpt4o_response = call_gpt4o_api(preprocessed_text)
-        if gpt4o_response:
-            return {"keywords": gpt4o_response}
-        else:
-            raise HTTPException(status_code=500, detail="GPT-4o API 요청 실패")
+        while True:
+            # result_queue에서 단어 가져오기
+            if not result_queue.empty():
+                # print(f"현재 큐 상태: {[item for item in result_queue.queue]}")
+                print("큐 비어있지않음")
+                word = result_queue.get()
+
+                # word가 numpy.str_ 타입인 경우 일반 문자열로 변환
+                if isinstance(word, np.str_):
+                    word = str(word)
+
+                sentence_buffer.append(word)
+                print(f"큐에서 가져온 단어: {word}")
+
+                # 문장 완성 조건 (예: 5개 단어 또는 "end" 단어 포함)
+                if len(sentence_buffer) >= 5 or "end" in sentence_buffer:
+                    print(f"버퍼에 저장된 단어: {sentence_buffer}")
+                    sentence = await generate_sentence_with_gpt4(sentence_buffer)
+                    print(f"생성된 문장: {sentence}")
+
+                    # React로 문장 전송
+                    await websocket.send_json({"sentence": sentence})
+
+                    # 버퍼 초기화
+                    sentence_buffer.clear()
+
+            # 클라이언트로부터 데이터 수신 (예: ping 메시지)
+            try:
+                data = await websocket.receive_text()
+                if data == '{"type": "ping"}':
+                    continue  # 핑 메시지는 무시
+            except Exception as e:
+                print(f"수신 중 에러 발생: {e}")
+                break  # 수신 에러 시 WebSocket 연결 종료
+
+            # CPU 과부하 방지를 위한 짧은 대기
+            await asyncio.sleep(0.1)
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"오류 발생: {str(e)}")
-    
-    
-    
-    
-    
-# 비디오 파일 경로 설정
-VIDEO_DIRECTORY = os.path.join(os.path.dirname(__file__), '../frontend/src/video')
-
-@app.get("/video/{keyword}")
-async def get_video(keyword: str):
-    # 비디오 파일 경로
-    video_path = os.path.join(VIDEO_DIRECTORY, f"{keyword}.mp4")
-
-    # 비디오 파일이 존재하는지 확인
-    if os.path.exists(video_path):
-        return FileResponse(video_path)
-    else:
-        raise HTTPException(status_code=404, detail="Video not found")
+        print(f"WebSocket 처리 중 예외 발생: {e}")
+    finally:
+        await websocket.close()
+        print("WebSocket 연결 종료")
