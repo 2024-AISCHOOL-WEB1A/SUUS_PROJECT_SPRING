@@ -178,7 +178,7 @@ const Translate = () => {
           <div className="modal-content">
             <div className="modal-header">
               {iframeChange ?
-                <iframe title={"Video Feed"}     className="no-scroll-iframe"  src={isModalOpen ? "http://localhost:5000/video_feed" : ""  } width={1280} height={720}></iframe>
+                <iframe title={"Video Feed"} src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
                 :
                 <Unity unityProvider={unityProvider} style={{ width: "500px", height: "200px", zIndex: "500", background: "red" }} />
               }
@@ -193,7 +193,7 @@ const Translate = () => {
                 <p key={index}>{keyword}</p>
               ))}
               {isListening && <p>음성 감지 중...</p>} {/* 음성 감지 중일 때 표시 */}
-           
+              <button onClick={() => setIframeChange(!iframeChange)}>전환</button>
               {/* video 나타나는 곳 */}
               <video src={videoSrc} width={400} height={300} autoPlay  onEnded={handleVideoEnd} style={{
                 position: 'absolute',
