@@ -4,7 +4,6 @@ import instance from '../axios';
 import { useDispatch, useSelector } from "react-redux";
 import { usageActions } from '../redux/reducer/usageSlice';
 import '../css/Translate.css';
-import { Unity, useUnityContext } from "react-unity-webgl";
 
 const Translate = () => {
   const buttonRef = useRef(null); // 버튼 참조
@@ -71,17 +70,18 @@ const Translate = () => {
     recognition.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
       setSttTextList((prev) => [...prev, transcript]);
-    
+
       try {
         const response = await instance.post("http://localhost:5000/extract_keywords", { sentence: transcript });
         let newKeywords = response.data.keywords;
-    
+
         // newKeywords가 배열이 아닌 문자열일 경우 쉼표로 분리하여 배열로 변환
         if (typeof newKeywords === "string") {
           newKeywords = newKeywords.split(",").map(keyword => keyword.trim());
         }
-    
+
         setKeywordsList((prev) => [...prev, ...newKeywords]);
+        console.log("쪼개진 단어들:", newKeywords);
       } catch (error) {
         console.error("Error extracting keywords:", error);
       }
@@ -107,7 +107,7 @@ const Translate = () => {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const microphone = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 256;
+      analyser.fftSize = 512;
       microphone.connect(analyser);
 
       const dataArray = new Uint8Array(analyser.fftSize);
@@ -118,7 +118,7 @@ const Translate = () => {
         const sum = dataArray.reduce((a, b) => a + b, 0);
         const volume = sum / dataArray.length;
 
-        if (volume > 10 && !isListeningLocal) {
+        if (volume > 20 && !isListeningLocal) {
           isListeningLocal = true;
           setIsListening(true);
           startSTT();
@@ -144,6 +144,7 @@ const Translate = () => {
 
   // 키워드 목록에서 비디오 파일이 있는지 확인 및 순차 재생
   useEffect(() => {
+    console.log("Keywords List:", keywordsList);
     if (keywordsList.length > 0 && currentIndex < keywordsList.length) {
       const matchedKeyword = keywordsList[currentIndex];
       setVideoSrc(`http://localhost:5000/video/${encodeURIComponent(matchedKeyword)}`);
@@ -152,16 +153,85 @@ const Translate = () => {
 
   // 비디오가 끝날 때마다 다음 키워드의 비디오를 재생
   const handleVideoEnd = () => {
-    setCurrentIndex((prevIndex) => prevIndex + 1);
+    console.log("Video Ended, Current Index:", currentIndex);
+    if (currentIndex < keywordsList.length - 1) {
+      setCurrentIndex((prevIndex) => prevIndex + 1);
+    } else {
+      setVideoSrc(""); // 모든 비디오 재생이 끝나면 비디오 창 숨기기
+    }
   };
 
-  // unity 설정
-  const { unityProvider } = useUnityContext({
-    loaderUrl: "Build/cache2.loader.js",
-    dataUrl: "Build/cache2.data",
-    frameworkUrl: "Build/cache2.framework.js",
-    codeUrl: "Build/cache2.wasm",
-  });
+  // 전환 버튼 클릭 시 문장과 단어 모두 초기화
+  const handleClearText = () => {
+    setSentence("");            // 문장 초기화
+    setSttTextList([]);         // STT 결과 초기화
+    setKeywordsList([]);        // 키워드 초기화
+    setVideoSrc("");            // 비디오 소스 초기화
+    setCurrentIndex(0);         // 키워드 인덱스 초기화
+  };
+
+  useEffect(() => {
+    let ws; // WebSocket 객체
+    let pingInterval; // 핑 메시지를 위한 인터벌
+
+    // WebSocket 이벤트 핸들러 정의
+    const handleOpen = () => {
+      console.log("WebSocket 연결 성공");
+
+      // 30초마다 핑 메시지 전송
+      pingInterval = setInterval(() => {
+        ws.send(JSON.stringify({ type: "ping" }));
+      }, 3000);
+    };
+
+    const handleMessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("수신 데이터:", data.sentence.content);
+
+        // 수신된 문장을 상태에 추가
+        if (data.sentence) {
+          speakText(data.sentence)
+        }
+      } catch (error) {
+        console.error("JSON 파싱 에러:", error);
+      }
+    };
+
+    const handleError = (error) => {
+      console.error("WebSocket 에러 발생:", error.message || error);
+    };
+
+    const handleClose = (event) => {
+      console.log("WebSocket 연결 종료", "코드:", event.code, "이유:", event.reason);
+      clearInterval(pingInterval); // WebSocket 종료 시 인터벌 제거
+
+      if (event.code !== 1000) {
+        console.error("비정상 종료: 재연결 시도 중...");
+        setTimeout(() => {
+          initializeWebSocket(); // 재연결
+        }, 2000);
+      }
+    };
+
+    const initializeWebSocket = () => {
+      ws = new WebSocket("ws://localhost:5000/ws/prediction");
+      ws.onopen = handleOpen;
+      ws.onmessage = handleMessage;
+      ws.onerror = handleError;
+      ws.onclose = handleClose;
+    };
+
+    if (isModalOpen) {
+      initializeWebSocket(); // 모달 열릴 때 WebSocket 초기화
+    }
+
+    return () => {
+      // 모달이 닫힐 때 WebSocket 및 인터벌 정리
+      if (ws) ws.close();
+      clearInterval(pingInterval);
+    };
+  }, [isModalOpen]);
 
   return (
     <div className="backgroundImg">
@@ -178,33 +248,26 @@ const Translate = () => {
           <div className="modal-content">
             <div className="modal-header">
               {iframeChange ?
-                <iframe title={"Video Feed"} src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
+                <iframe title={"Video Feed"} className="no-scroll-iframe" src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1280} height={720}></iframe>
                 :
-                <Unity unityProvider={unityProvider} style={{ width: "500px", height: "200px", zIndex: "500", background: "red" }} />
+                <video src={videoSrc} width={400} height={300} autoPlay  onEnded={handleVideoEnd} style={{
+                  position: 'absolute', bottom: '310px', right: '285px', zIndex: 10}}></video>
               }
               <span className="close" onClick={modalClose}>&times;</span>
             </div>
             <div className="modal-body">
-
+              {sentence ? <p>{sentence}</p> : <p>마이크를 켜고 말해주세요</p>}
               {sttTextList.length > 0 && sttTextList.map((text, index) => (
                 <p key={index}>{text}</p>
               ))}
-              {keywordsList.length > 0 && keywordsList.map((keyword, index) => (
+              {/* {keywordsList.length > 0 && keywordsList.map((keyword, index) => (
                 <p key={index}>{keyword}</p>
-              ))}
+              ))} */}
               {isListening && <p>음성 감지 중...</p>} {/* 음성 감지 중일 때 표시 */}
               
-              {/* video 나타나는 곳 */}
-              <video src={videoSrc} width={400} height={300} autoPlay  onEnded={handleVideoEnd} style={{
-                position: 'absolute',
-                bottom: '310px',  // 하단 10px 위치
-                right: '285px',   // 오른쪽 10px 위치
-                zIndex: 10,      // iframe 위에 표시되도록
-              }}>
-
-              </video>
-              <button onClick={() => setIframeChange(!iframeChange)}className='changebtn'>전환</button>
-              
+              <button onClick={() => {
+                setIframeChange(!iframeChange)
+                handleClearText() }} className = 'changebtn'>전환</button>
             </div>
           </div>
         </div>
