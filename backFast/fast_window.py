@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from queue import Queue
 import asyncio
-from fastapi import WebSocket
+from fastapi import WebSocket, HTTPException
 import openai
 
 # 새로 추가한 부분
@@ -368,3 +368,61 @@ async def prediction_websocket(websocket: WebSocket):
     finally:
         await websocket.close()
         print("WebSocket 연결 종료")
+
+# ===============================================================================================================================
+# 요청 모델 정의
+# 형태소 분석을 통한 전처리 함수
+def preprocess_sentence(sentence: str):
+    okt = Okt()
+    tokens = okt.pos(sentence)
+    # 조사(Josa), 어미(Eomi), 구두점(Punctuation) 제거
+    meaningful_words = [word for word, tag in tokens if tag not in ['Josa', 'Eomi', 'Punctuation']]
+    return meaningful_words
+
+# 요청 데이터 모델 정의
+class SentenceRequest(BaseModel):
+    sentence: str
+
+# gpt-4o API 호출 함수
+def call_gpt4o_api(text: str) -> Optional[str]:
+    api_url = "https://api.openai.com/v1/chat/completions"
+    api_key = os.environ["OPENAPI_KEY"]
+
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
+
+    prompt = f"다음 문장에서 조사, 어미 및 불필요한 부분을 제거하고 핵심 단어만 추출하여 출력해주세요: {text}"
+
+    payload = {
+        'model': 'gpt-4o',
+        'messages': [{
+            'role': 'user',
+            'content': prompt
+        }]
+    }
+
+    try:
+        response = requests.post(api_url, headers=headers, json=payload)
+        response.raise_for_status()
+        response_data = response.json()
+        processed_text = response_data['choices'][0]['message']['content']
+        return processed_text.strip()
+    except requests.exceptions.RequestException as e:
+        print(f"GPT-4o API 요청 오류: {e}")
+        return None
+
+# FastAPI 엔드포인트 설정 => 
+@app.post("/extract_keywords")
+async def extract_keywords(request: SentenceRequest):
+    try:
+        # 전처리한 문장 토큰 목록 생성
+        preprocessed_text = " ".join(preprocess_sentence(request.sentence))
+        gpt4o_response = call_gpt4o_api(preprocessed_text)
+        if gpt4o_response:
+            return {"keywords": gpt4o_response}
+        else:
+            raise HTTPException(status_code=500, detail="GPT-4o API 요청 실패")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"오류 발생: {str(e)}")
