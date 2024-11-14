@@ -115,8 +115,13 @@ height: 100%;
   align-items: center;
   border-bottom: 1px solid #9192ca;
   position: relative;
+  
+  
 }
-
+.no-scroll-iframe {
+  overflow: hidden; /* 스크롤을 없앱니다 */
+  border: none; /* 필요시 border도 제거 */
+}
 /* 닫기 버튼 스타일 */
 .close {
   font-size: 30px;
