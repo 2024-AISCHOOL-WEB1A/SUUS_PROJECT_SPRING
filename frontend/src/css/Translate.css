@@ -11,10 +11,10 @@ height: 100%;
 }
 .texttitle {
   position: absolute;
-  top: 25%; /* GIF 위에 위치 조정 */
+  top: 15%; /* GIF 위에 위치 조정 */
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.429); /* 검정색 반투명 배경 */
+  background-color: rgba(0, 0, 0, 0.375); /* 검정색 반투명 배경 */
   color: white;
   padding: 10px 20px;
   border-radius: 8px;
@@ -46,31 +46,37 @@ height: 100%;
   z-index: 10;
 }
 
-/* 오른쪽 하단에 고정된 원형 3D 버튼 스타일 */
+/* Start 버튼 스타일 */
 .button-text {
-  position: fixed; /* 항상 고정되도록 설정 */
-  bottom: 30px; /* 화면 하단에서 간격 */
- right: 50px; /* 화면 오른쪽에서 간격 */
-  width: 100px;
-  height: 100px;
-  background-color: #56b3f1;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 30px;
+  background-color: #1e49e8;
   color: #ffffff;
-  font-size: 24px;
+  font-size: 1.2em;
   font-weight: bold;
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   text-align: center;
-  line-height: 100px;
+  border-radius: 25px; /* 원형 버튼 */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* 더 부드러운 그림자 */
+  transition: background-color 0.3s, transform 0.2s; /* 전환 효과 추가 */
   cursor: pointer;
-  border-radius: 50%;
-  box-shadow: 0px 8px 0 #195176;
- 
-  z-index: 11; /* 아바타와 겹치지 않도록 설정 */
+  z-index: 11;
+}
+
+/* 버튼 호버 효과 */
+.button-text:hover {
+  background-color: #1741c1; /* 호버 시 살짝 어두운 색상 */
+  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.4); /* 호버 시 그림자 강화 */
+  transform: translate(-50%, -2px); /* 살짝 위로 올라가는 효과 */
 }
 
 /* 버튼 클릭 시 눌리는 효과 */
 .button-text:active {
-  transform: translateY(4px);
-  box-shadow: 0px 4px 0 #21618c;
+  transform: translate(-50%, 1px);
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* 클릭 시 그림자 감소 */
 }
 
 /* 모달 설정 */
@@ -80,42 +86,47 @@ height: 100%;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: #f4eff851;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 2000;
 }
 
 /* 모달 내용 스타일 */
 .modal-content {
-  background-color: #3784f644;
+  background-color: #e1e6eedf;
   width: 70%;
   height: 90%;
-  border: 4px solid #4c00ff;
+  border: 4px solid #0c2d9b7d;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.5);
+  box-shadow: 0px 0px 15px rgba(39, 2, 2, 0.763);
   display: flex;
   flex-direction: column;
 }
 
 /* 모달 헤더 스타일 */
 .modal-header {
-  background-color: #d0bde251;
+  background-color: #c5d3ff22;
   padding: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-bottom: 1px solid #4c00ff;
+  border-bottom: 1px solid #9192ca;
   position: relative;
+  
+  
 }
-
+.no-scroll-iframe {
+  overflow: hidden; /* 스크롤을 없앱니다 */
+  border: none; /* 필요시 border도 제거 */
+}
 /* 닫기 버튼 스타일 */
 .close {
   font-size: 30px;
   font-weight: bold;
-  color: #4c00ff;
+  color: #1d015f;
   cursor: pointer;
   position: absolute;
   top: 20px;
@@ -124,7 +135,7 @@ height: 100%;
 
 /* 모달 본문 스타일 */
 .modal-body {
-  background-color: #4990f92a;
+  background-color: #f4eff848;
   color: #000000;
   padding: 20px;
   display: flex;
@@ -132,4 +143,24 @@ height: 100%;
   align-items: center;
   text-align: center;
   
+}
+
+.changebtn {
+  background-color: #f4f8ff; /* 부드러운 배경색 */
+  color: #1e49e8; /* 텍스트 색상 */
+  padding: 5px 15px;
+  font-size: 1em;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 15px; /* 둥근 모서리 */
+  border: 1px solid #d1e2ff; /* 외곽선 */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+  transition: background-color 0.3s, color 0.3s;
+  cursor: pointer;
+}
+
+/* 호버 효과 */
+.changebtn:hover {
+  background-color: #e6f0ff; /* 호버 시 살짝 진해지는 배경 */
+  color: #1741c1; /* 호버 시 더 진해지는 글씨 색상 */
 }
