@@ -393,10 +393,12 @@ def call_gpt4o_api(text: str) -> Optional[str]:
         'Content-Type': 'application/json'
     }
 
-    prompt = f"다음 문장에서 조사, 어미 및 불필요한 부분을 제거하고 핵심 단어만 추출하여 출력해주세요: {text}"
+    prompt = f"다음 문장에서 핵심 단어만 추출하고, 복합어는 단어 형태로 분리해서 출력해줘. 단어만 나오면 단어만 출럭해줘.: {text}"
+
+
 
     payload = {
-        'model': 'gpt-4o',
+        'model': 'gpt-4-turbo',
         'messages': [{
             'role': 'user',
             'content': prompt
