@@ -85,7 +85,7 @@ const Card = ({ userInfo }) => {
         </div>
         <div className="card-form__inner">
           <div className="card-input">
-            <label className="card-input__label">Card Number</label>
+            <label className="card-input__label">카드번호</label>
             <input type="text" name='cardNum' className="card-input__input"
               value={cardInfo.cardNum} onFocus={handleFocus} onBlur={handleBlur} onChange={handleSignComChange}
               placeholder="Card Number" maxLength="20"
@@ -94,14 +94,14 @@ const Card = ({ userInfo }) => {
 
           <div className="card-form__row">
             <div className="card-form__col">
-              <label className="card-input__label">Expiration Month</label>
+              <label className="card-input__label">유효기간 MM</label>
               <input type="text" name='cardMonth' className="card-input__input"
                 value={cardInfo.cardMonth} onFocus={handleFocus} onBlur={handleBlur} onChange={handleSignComChange}
                 placeholder="MM" maxLength="2" />
             </div>
 
             <div className="card-form__col">
-              <label className="card-input__label">Expiration Year</label>
+              <label className="card-input__label">유효기간 YY</label>
               <input type="text" name='cardYear' className="card-input__input"
                 value={cardInfo.cardYear} onFocus={handleFocus} onBlur={handleBlur} onChange={handleSignComChange}
                 placeholder="YY" maxLength="2" />

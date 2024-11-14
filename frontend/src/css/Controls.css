@@ -35,20 +35,16 @@ body {
     line-height: 40px;
     font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
     background-color: var(--color1);
-    color: #ffffff;
-    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+    color: #000000;
 }
 
-.controls li:hover {
-    background-color: var(--color2);
-    color: #ffffff;
-    transform: scale(1.05);
-}
+
 
 .controls li.active {
     font-size: 0.9rem;
     background-color: var(--color2);
-    color: #ffffff;
-    font-weight: bold;
-    transform: scale(0.8);
+    color: #000000; /* 글자 색을 검정색으로 설정 */
+  font-weight: lighter;
+    transform: scale(0.6);
+    z-index: 0;
 }

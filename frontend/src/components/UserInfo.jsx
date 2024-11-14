@@ -138,7 +138,7 @@ const UserInfo = ({ userInfo }) => {
                                     <input type="text" name="companyId" value={companyResInfo.companyId} disabled />
                                 </div>
                                 <div>
-                                    <label>COMPANY</label>
+                                    <label>COMPANY </label>
                                     <input type="text" name="companyName" value={companyResInfo.companyName} onChange={handlecompanyChange} />
                                 </div>
                             </div>

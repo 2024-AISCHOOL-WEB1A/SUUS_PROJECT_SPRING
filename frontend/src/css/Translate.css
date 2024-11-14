@@ -49,7 +49,7 @@ height: 100%;
 /* Start 버튼 스타일 */
 .button-text {
   position: absolute;
-  top: 25%;
+  top: 22%;
   left: 50%;
   transform: translateX(-50%);
   padding: 15px 30px;
