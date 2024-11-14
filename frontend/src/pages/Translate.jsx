@@ -129,14 +129,6 @@ const Translate = () => {
     setCurrentIndex((prevIndex) => prevIndex + 1);
   };
 
-  // unity 설정
-  const { unityProvider } = useUnityContext({
-    loaderUrl: "Build/cache2.loader.js",
-    dataUrl: "Build/cache2.data",
-    frameworkUrl: "Build/cache2.framework.js",
-    codeUrl: "Build/cache2.wasm",
-  });
-
   const speakText = (text) => {
     setSentence(text);
     const utterance = new SpeechSynthesisUtterance(text);
@@ -224,7 +216,8 @@ const Translate = () => {
               {iframeChange ?
                 <iframe title="Video Feed" src={isModalOpen ? "http://localhost:5000/video_feed" : ""} width={1300} height={725}></iframe>
                 :
-                <Unity unityProvider={unityProvider} style={{ width: "1280px", height: "720px", zIndex: "500" }} />
+                <video src={videoSrc} width={400} height={300} autoPlay  onEnded={handleVideoEnd} style={{
+                  position: 'absolute', bottom: '310px', right: '285px', zIndex: 10}}></video>
               }
               <span className="close" onClick={modalClose}>&times;</span>
             </div>
@@ -239,14 +232,7 @@ const Translate = () => {
               {isListening && <p>음성 감지 중...</p>} {/* 음성 감지 중일 때 표시 */}
               <button onClick={() => setIframeChange(!iframeChange)}>전환</button>
               {/* video 나타나는 곳 */}
-              <video src={videoSrc} width={400} height={300} autoPlay  onEnded={handleVideoEnd} style={{
-                position: 'absolute',
-                bottom: '310px',  // 하단 10px 위치
-                right: '285px',   // 오른쪽 10px 위치
-                zIndex: 10,      // iframe 위에 표시되도록
-              }}>
-
-              </video>
+              
               <button onClick={() => setIframeChange(!iframeChange)}className='changebtn'>전환</button>
               
             </div>
