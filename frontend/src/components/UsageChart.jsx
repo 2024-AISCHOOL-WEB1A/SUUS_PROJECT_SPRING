@@ -17,7 +17,7 @@ const UsageChart = ({userInfo}) => {
     const [chartType, setChartType] = useState('year')
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-    const [startDate, setStartDate] = useState(new Date().setDate(new Date().getDate() - 7)) // 기본값을 오늘로 설정
+    const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 7))) // 기본값을 오늘로 설정
     const [endDate, setEndDate] = useState(new Date()) // 기본값을 오늘로 설정
 
     const chartRef = useRef(null)
@@ -42,7 +42,6 @@ const UsageChart = ({userInfo}) => {
                 startYear: startDate.getFullYear(), startMonth: startDate.getMonth() + 1, startDay: startDate.getDate(),
                 endYear: endDate.getFullYear(), endMonth: endDate.getMonth() + 1, endDay: endDate.getDate()
             })
-        console.log("search",res);
         
         let resLabels = [], resData = []
 

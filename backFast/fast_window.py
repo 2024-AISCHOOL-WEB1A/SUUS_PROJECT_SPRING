@@ -1,26 +1,25 @@
+import os
 import cv2
 import numpy as np
 import mediapipe as mp
-import tensorflow as tf
-from tensorflow.keras.models import load_model
+
 from PIL import Image, ImageDraw, ImageFont
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from langchain.prompts import FewShotPromptTemplate, PromptTemplate
+from langchain_community.chat_models import ChatOpenAI
+from konlpy.tag import Okt  # 형태소 분석을 위한 konlpy의 Okt 사용
+from typing import Optional
+
 from fastapi import FastAPI
+from fastapi import WebSocket, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from dotenv import load_dotenv
 from queue import Queue
 import asyncio
-from fastapi import WebSocket, HTTPException
-import openai
-
-# 새로 추가한 부분
-from pydantic import BaseModel
-from langchain.prompts import FewShotPromptTemplate, PromptTemplate
-from langchain_community.chat_models import ChatOpenAI
-import os
 import requests
-from typing import Optional
-from konlpy.tag import Okt  # 형태소 분석을 위한 konlpy의 Okt 사용
 
 app = FastAPI()
 
@@ -31,10 +30,10 @@ app.add_middleware(
     allow_methods=["*"],  # 허용할 HTTP 메서드 (GET, POST 등)
     allow_headers=["*"],  # 허용할 HTTP 헤더
 )
-
-model = load_model('./my_model4.h5')
+model = load_model('./final_model_with_all.h5')
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-labels = np.load("./label_classes_korean.npy")
+labels = np.load("./index_to_label.npy", allow_pickle=True)
+labels = labels.item()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -163,6 +162,7 @@ def is_hand_out_of_frame(pose_landmarks, frame_height):
 
 # 프레임 시퀀스를 모델 입력에 맞게 전처리하는 함수
 def preprocess_sequence_for_model(frames):
+    frames = pad_sequences(frames, maxlen=50, padding='post', dtype='float32')
     processed_frames = []
     for frame in frames:
         frame_resized = cv2.resize(frame, (224, 224))
@@ -270,12 +270,13 @@ def video_feed():
                         # 예측 결과 확인
                         predicted_label = np.argmax(prediction, axis=1)[0]
                         print(predicted_label)
-                        word = labels[predicted_label]
+                        word = labels.get(predicted_label, "Unknown")
+                        print(word)
                         result_queue.put(word)
                         print(result_queue)
 
                         print(f"예측된 라벨: {predicted_label}")
-                        print(f"예측된 라벨값: {labels[predicted_label]}")
+                        print(f"예측된 라벨값: {word}")
                         frames.clear()  # 시퀀스 전달 후 리스트 초기화
 
                 # 한글 메시지를 화면에 표시
@@ -321,44 +322,40 @@ async def generate_sentence_with_gpt4(words):
 @app.websocket("/ws/prediction")
 async def prediction_websocket(websocket: WebSocket):
     try:
-        print("WebSocket 엔드포인트에 접근함")  # 디버깅 메시지
         await websocket.accept()
-        print("WebSocket 연결 수락됨")  # 디버깅 메시지
-
         while True:
-            # result_queue에서 단어 가져오기
-            if not result_queue.empty():
-                # print(f"현재 큐 상태: {[item for item in result_queue.queue]}")
-                print("큐 비어있지않음")
+            while not result_queue.empty():
                 word = result_queue.get()
 
-                # word가 numpy.str_ 타입인 경우 일반 문자열로 변환
+                # word가 numpy.str_ 타입인 경우 문자열로 변환
                 if isinstance(word, np.str_):
                     word = str(word)
 
                 sentence_buffer.append(word)
-                print(f"큐에서 가져온 단어: {word}")
+                print(f"버퍼에 저장된 단어: {sentence_buffer}")
 
-                # 문장 완성 조건 (예: 5개 단어 또는 "end" 단어 포함)
-                if len(sentence_buffer) >= 5 or "end" in sentence_buffer:
-                    print(f"버퍼에 저장된 단어: {sentence_buffer}")
+                # 5개 이상의 단어가 쌓이면 문장 생성
+                if len(sentence_buffer) >= 5:
                     sentence = await generate_sentence_with_gpt4(sentence_buffer)
                     print(f"생성된 문장: {sentence}")
 
-                    # React로 문장 전송
+                    # React로 전송
                     await websocket.send_json({"sentence": sentence})
 
                     # 버퍼 초기화
                     sentence_buffer.clear()
 
-            # 클라이언트로부터 데이터 수신 (예: ping 메시지)
+            # 핑 메시지를 기다리지 않더라도 작동하도록 대기 추가
             try:
-                data = await websocket.receive_text()
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=0.1)
                 if data == '{"type": "ping"}':
                     continue  # 핑 메시지는 무시
+            except asyncio.TimeoutError:
+                # 타임아웃 발생 시 아무 작업도 하지 않음 (큐 확인 루프 계속)
+                pass
             except Exception as e:
-                print(f"수신 중 에러 발생: {e}")
-                break  # 수신 에러 시 WebSocket 연결 종료
+                print(f"클라이언트 데이터 수신 중 에러 발생: {e}")
+                break  # 수신 에러 시 WebSocket 종료
 
             # CPU 과부하 방지를 위한 짧은 대기
             await asyncio.sleep(0.1)
@@ -386,41 +383,43 @@ class SentenceRequest(BaseModel):
 # gpt-4o API 호출 함수
 def call_gpt4o_api(text: str) -> Optional[str]:
     api_url = "https://api.openai.com/v1/chat/completions"
-    api_key = os.environ["OPENAPI_KEY"]
 
     headers = {
-        'Authorization': f'Bearer {api_key}',
+        'Authorization': f'Bearer {openai_api_key}',
         'Content-Type': 'application/json'
     }
 
-    prompt = f"다음 문장에서 핵심 단어만 추출하고, 복합어는 단어 형태로 분리해서 출력해줘. 단어만 나오면 단어만 출럭해줘.: {text}"
-
-
-
+    prompt = f"다음 문장에서 핵심 단어를 추출하는데, 의미를 유지해야 하는 단어('가다', '감사합니다', '검사', '나빠지다', '병원, '소화불량, '아프다', '안녕하세요', '왔어요', '조회', '죄송합니다', '치료', '호명', '확인서', '환자실', '회복') 는 그대로 유지해줘. 결과는 쉼표로 구분된 단어 리스트로 출력해줘. 단어의 띄어쓰기는 모두 제거해줘: {text}"
     payload = {
-        'model': 'gpt-4-turbo',
-        'messages': [{
-            'role': 'user',
-            'content': prompt
-        }]
+        'model': 'gpt-4o',
+        'messages': [
+            {'role': 'user', 'content': prompt}
+        ]
     }
 
     try:
         response = requests.post(api_url, headers=headers, json=payload)
         response.raise_for_status()
+
+        # 응답 데이터 파싱
         response_data = response.json()
-        processed_text = response_data['choices'][0]['message']['content']
-        return processed_text.strip()
+        if 'choices' in response_data and len(response_data['choices']) > 0:
+            processed_text = response_data['choices'][0]['message']['content']
+            return processed_text.strip()
+        else:
+            print("API 응답에서 예상된 데이터 구조를 찾을 수 없습니다.")
+            return None
     except requests.exceptions.RequestException as e:
         print(f"GPT-4o API 요청 오류: {e}")
         return None
 
 # FastAPI 엔드포인트 설정 => 
 @app.post("/extract_keywords")
-async def extract_keywords(request: SentenceRequest):
+async def extract_keywords(data: SentenceRequest):
     try:
         # 전처리한 문장 토큰 목록 생성
-        preprocessed_text = " ".join(preprocess_sentence(request.sentence))
+        preprocessed_text = " ".join(preprocess_sentence(data.sentence))
+        print("전처리한 문장 토큰: ", preprocessed_text)
         gpt4o_response = call_gpt4o_api(preprocessed_text)
         if gpt4o_response:
             return {"keywords": gpt4o_response}
