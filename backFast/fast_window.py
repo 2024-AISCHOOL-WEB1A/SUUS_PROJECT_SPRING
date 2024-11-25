@@ -30,10 +30,10 @@ app.add_middleware(
     allow_methods=["*"],  # 허용할 HTTP 메서드 (GET, POST 등)
     allow_headers=["*"],  # 허용할 HTTP 헤더
 )
-model = load_model('./final_model_with_all.h5')
+model = load_model('./best_model_11_19ver3.h5')
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-labels = np.load("./index_to_label.npy", allow_pickle=True)
-labels = labels.item()
+print(model.input)
+labels = np.load("./label_classes.npy", allow_pickle=True)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -94,11 +94,8 @@ desired_pose_indices = [15, 13, 11, 12, 14, 16]  # 원하는 포즈 키포인트
 
 # 얼굴에서 추출하고 싶은 키포인트 인덱스 설정
 desired_face_indices = [
-    46, 53, 52, 65, 55,  # 오른 눈썹
-    285, 295, 282, 283, 276,  # 왼 눈썹
-    33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7,  # 오른 눈
-    362, 398, 384, 385, 386, 387, 388, 466, 263, 249, 390, 373, 374, 380, 381, 382,  # 왼 눈
-    78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95  # 입
+    33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7,
+    362, 398, 384, 385, 386, 387, 388, 466, 263, 249, 390, 373, 374, 380, 381, 382
 ]
 
 # 윤곽선 그리기 함수
@@ -138,38 +135,96 @@ def is_face_inside_contour(face_landmarks, frame_width, frame_height):
             return False
     return True
 
-# 손이 화면에 들어왔는지 확인하는 함수 (손목 좌표가 일정 높이 이상에 있는지 확인)
-def is_hand_in_frame(pose_landmarks, frame_height):
-    if pose_landmarks:
-        # 왼손목과 오른손목의 y 좌표 확인
-        left_wrist_y = pose_landmarks[15].y * frame_height
-        right_wrist_y = pose_landmarks[16].y * frame_height
-        # 손이 화면에 감지되면 True 반환
-        if left_wrist_y < frame_height * 0.9 or right_wrist_y < frame_height * 0.9:
-            return True
-    return False
+def are_hands_in_frame(left_hand_landmarks, right_hand_landmarks, frame_height):
+    """
+    양쪽 손이 화면에 있는지 확인 (왼손과 오른손의 손목 기준 - 0번째 키포인트)
+    """
+    try:
+        left_wrist_in_frame = False
+        right_wrist_in_frame = False
 
-# 손이 화면에서 사라졌는지 확인하는 함수 (손목 좌표가 일정 높이 아래로 내려갔는지 확인)
-def is_hand_out_of_frame(pose_landmarks, frame_height):
-    if pose_landmarks:
-        # 왼손목과 오른손목의 y 좌표 확인
-        left_wrist_y = pose_landmarks[15].y * frame_height
-        right_wrist_y = pose_landmarks[16].y * frame_height
-        # 손이 아래로 내려가면 True 반환
-        if left_wrist_y > frame_height * 0.9 and right_wrist_y > frame_height * 0.9:
-            return True
-    return False
+        # 왼손 확인
+        if left_hand_landmarks and len(left_hand_landmarks.landmark) > 0:
+            left_wrist_y = left_hand_landmarks.landmark[0].y * frame_height
+            left_wrist_in_frame = left_wrist_y < frame_height * 0.9  # 왼손 손목이 화면 위쪽에 있으면 True
+
+        # 오른손 확인
+        if right_hand_landmarks and len(right_hand_landmarks.landmark) > 0:
+            right_wrist_y = right_hand_landmarks.landmark[0].y * frame_height
+            right_wrist_in_frame = right_wrist_y < frame_height * 0.9  # 오른손 손목이 화면 위쪽에 있으면 True
+
+        # 양쪽 손이 모두 화면에 들어왔는지 반환
+        return left_wrist_in_frame or right_wrist_in_frame
+
+    except Exception as e:
+        print(f"[ERROR] are_hands_in_frame 오류: {e}")
+        return False
+
+def are_hands_out_of_frame(left_hand_landmarks, right_hand_landmarks, frame_height):
+    """
+    양쪽 손이 화면에서 사라졌는지 확인 (왼손과 오른손의 손목 기준 - 0번째 키포인트)
+    """
+    try:
+        left_wrist_out_of_frame = True
+        right_wrist_out_of_frame = True
+
+        # 왼손 확인
+        if left_hand_landmarks and len(left_hand_landmarks.landmark) > 0:
+            left_wrist_y = left_hand_landmarks.landmark[0].y * frame_height
+            left_wrist_out_of_frame = left_wrist_y > frame_height * 0.9  # 왼손 손목이 화면 아래쪽에 있으면 True
+
+        # 오른손 확인
+        if right_hand_landmarks and len(right_hand_landmarks.landmark) > 0:
+            right_wrist_y = right_hand_landmarks.landmark[0].y * frame_height
+            right_wrist_out_of_frame = right_wrist_y > frame_height * 0.9  # 오른손 손목이 화면 아래쪽에 있으면 True
+
+        # 양쪽 손이 모두 화면에서 나갔는지 반환
+        return left_wrist_out_of_frame and right_wrist_out_of_frame
+
+    except Exception as e:
+        print(f"[ERROR] are_hands_out_of_frame 오류: {e}")
+        return False
 
 # 프레임 시퀀스를 모델 입력에 맞게 전처리하는 함수
-def preprocess_sequence_for_model(frames):
-    frames = pad_sequences(frames, maxlen=50, padding='post', dtype='float32')
+def preprocess_sequence_for_model(frames, target_length=50, frame_size=(224, 224)):
     processed_frames = []
-    for frame in frames:
-        frame_resized = cv2.resize(frame, (224, 224))
-        frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-        frame_normalized = frame_rgb.astype('float32') / 255.0
-        processed_frames.append(frame_normalized)
-    return np.expand_dims(np.array(processed_frames), axis=0)  # (1, sequence_length, 224, 224, 3)
+    idx = 0
+
+    while len(processed_frames) < target_length:
+        if idx < len(frames):
+            frame = frames[idx]
+            # 프레임 크기 조정 및 정규화
+            frame_resized = cv2.resize(frame, frame_size)
+            frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+            frame_normalized = frame_rgb.astype('float32') / 255.0
+            processed_frames.append(frame_normalized)
+            idx += 1
+        else:
+            # 부족한 경우 제로 패딩 추가
+            padding_frame = np.zeros((*frame_size, 3), dtype='float32')
+            processed_frames.append(padding_frame)
+
+    # 최종 배열로 변환 및 배치 차원 추가
+    return np.expand_dims(np.array(processed_frames), axis=0)  # (1, target_length, frame_size[0], frame_size[1], 3)
+
+def preprocess_keypoints_for_model(keypoints, max_sequence_length=50, num_keypoints=80):
+    # 1. 키포인트 데이터를 NumPy 배열로 변환
+    keypoints = np.array(keypoints, dtype='float32')  # (프레임 수, num_keypoints, 3)
+
+    # 2. 시퀀스 길이 조정
+    current_sequence_length = keypoints.shape[0]
+    if current_sequence_length > max_sequence_length:
+        # 초과된 프레임은 잘라내기
+        keypoints = keypoints[:max_sequence_length, :, :]
+    elif current_sequence_length < max_sequence_length:
+        # 부족한 프레임은 0으로 패딩
+        padding = np.zeros((max_sequence_length - current_sequence_length, num_keypoints, 3), dtype='float32')
+        keypoints = np.concatenate([keypoints, padding], axis=0)  # (max_sequence_length, num_keypoints, 3)
+
+    # 3. 배치 차원 추가 (모델 입력 형태로 변환)
+    keypoints = np.expand_dims(keypoints, axis=0)  # (1, max_sequence_length, num_keypoints, 3)
+
+    return keypoints
 
 @app.get("/")
 def root():
@@ -183,7 +238,7 @@ def shutdown_event():
         cv2.destroyAllWindows()  # OpenCV 창 닫기
         cap = None
     return "cap release"
-    
+
 @app.get("/video_feed")
 def video_feed():
     global cap
@@ -194,12 +249,17 @@ def video_feed():
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_skip = max(1, int(fps / target_fps))  # 최소 1로 설정하여 오류 방지
     recording_started = False
+    wordList=["나", "교통사고", "병원", "엑스레이", "내일", "꼭", "병원", "오다"]
+    wordCnt = 0
     frames = []
+    keypoints = []
 
     def generate_frames():
         hand_in_frame = False  # 함수 내에서 초기화
         inside_proper_position = False
         nonlocal frame_count, recording_started
+        nonlocal wordCnt
+        nonlocal wordList
         try:
             while cap.isOpened():
                 ret, frame = cap.read()
@@ -225,6 +285,13 @@ def video_feed():
                 # 기본 메시지 초기화
                 direction_message = "처리 중입니다..."
 
+                frame_coords = {
+                    'pose': [[0, 0, 0]] * len(desired_pose_indices),
+                    'face': [[0, 0, 0]] * len(desired_face_indices),
+                    'left_hand': [[0, 0, 0]] * 21,
+                    'right_hand': [[0, 0, 0]] * 21
+                }
+
                 # 얼굴 키포인트 추출
                 face_landmarks = []
                 if holistic_results.face_landmarks:
@@ -247,7 +314,7 @@ def video_feed():
                 if inside_proper_position and holistic_results.pose_landmarks:
 
                     # 손이 감지되면 시작점 기록
-                    if not hand_in_frame and is_hand_in_frame(holistic_results.pose_landmarks.landmark, frame_height):
+                    if not hand_in_frame and are_hands_in_frame(holistic_results.left_hand_landmarks, holistic_results.right_hand_landmarks, frame_height):
                         hand_in_frame = True
                         recording_started = True  # 기록 시작
                         frames.clear()  # 프레임 리스트 초기화
@@ -255,28 +322,55 @@ def video_feed():
 
                     # 기록 중이면 프레임 추가
                     if recording_started:
+                        # Pose landmarks
+                        if holistic_results.pose_landmarks:
+                            frame_coords['pose'] = [
+                                [lm.x, lm.y, lm.z] for idx, lm in enumerate(holistic_results.pose_landmarks.landmark) if idx in desired_pose_indices
+                            ]
+
+                        # Face landmarks
+                        if holistic_results.face_landmarks:
+                            frame_coords['face'] = [
+                                [lm.x, lm.y, lm.z] for idx, lm in enumerate(holistic_results.face_landmarks.landmark) if idx in desired_face_indices
+                            ]
+
+                        # Left hand landmarks
+                        if holistic_results.left_hand_landmarks:
+                            frame_coords['left_hand'] = [[lm.x, lm.y, lm.z] for lm in holistic_results.left_hand_landmarks.landmark]
+
+                        # Right hand landmarks
+                        if holistic_results.right_hand_landmarks:
+                            frame_coords['right_hand'] = [[lm.x, lm.y, lm.z] for lm in holistic_results.right_hand_landmarks.landmark]
+
+                        keypoints.append(frame_coords['pose']+frame_coords['face']+frame_coords['left_hand']+frame_coords['right_hand'])
                         frames.append(frame)
 
                     # 손이 사라지거나 아래로 내려가면 끝점 기록
-                    if hand_in_frame and is_hand_out_of_frame(holistic_results.pose_landmarks.landmark, frame_height):
+                    if hand_in_frame and are_hands_out_of_frame(holistic_results.left_hand_landmarks, holistic_results.right_hand_landmarks, frame_height):
                         hand_in_frame = False
                         recording_started = False  # 기록 종료
                         direction_message = "손이 사라졌습니다. 끝점입니다."
 
-                        # 모델에 입력할 데이터 처리
+                        # 모델에 입력할 데이터 처리 =============================================> 변경 부분
                         input_sequence = preprocess_sequence_for_model(frames)
-                        prediction = model.predict(input_sequence)
+                        processed_keypoints = preprocess_keypoints_for_model(keypoints)
+                        prediction = model.predict([input_sequence,processed_keypoints])
 
                         # 예측 결과 확인
                         predicted_label = np.argmax(prediction, axis=1)[0]
-                        print(predicted_label)
-                        word = labels.get(predicted_label, "Unknown")
-                        print(word)
+                        word = labels[predicted_label]
                         result_queue.put(word)
-                        print(result_queue)
 
                         print(f"예측된 라벨: {predicted_label}")
                         print(f"예측된 라벨값: {word}")
+                        # ===============================================================================
+
+                        # result_queue.put(wordList[wordCnt])
+                        # wordCnt += 1
+                        # if wordCnt == len(wordList):  # wordList 끝까지 반복
+                        #     wordCnt = 0
+
+                        # ===============================================================================
                         frames.clear()  # 시퀀스 전달 후 리스트 초기화
 
                 # 한글 메시지를 화면에 표시
@@ -296,7 +390,6 @@ def video_feed():
             cv2.destroyAllWindows()
     return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
 # ============================================================================================================================
-
 result_queue = Queue()
 sentence_buffer = []  # 단어를 모아둘 버퍼
 # GPT-4 호출 함수
@@ -335,7 +428,7 @@ async def prediction_websocket(websocket: WebSocket):
                 print(f"버퍼에 저장된 단어: {sentence_buffer}")
 
                 # 5개 이상의 단어가 쌓이면 문장 생성
-                if len(sentence_buffer) >= 5:
+                if len(sentence_buffer) >= 4:
                     sentence = await generate_sentence_with_gpt4(sentence_buffer)
                     print(f"생성된 문장: {sentence}")
 

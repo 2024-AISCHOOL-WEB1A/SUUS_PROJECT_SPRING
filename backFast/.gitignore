@@ -1,3 +1,15 @@
 my_model4.h5
 final_model_with_all.h5
-.env
+best_model_11_19ver3.h5
+*.env
+
+# HDF5 모델 파일
+*.h5
+
+# 가상 환경 폴더
+myenv/
+
+# 추가적으로 무시할 수 있는 파일들
+__pycache__/
+*.pyc
+*.pyo
